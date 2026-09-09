@@ -2,12 +2,15 @@
   "scripts": {
     "dead-code": "fallow dead-code && fallow dead-code --production",
     "fmt": "pnpm -r fmt",
+    "fmt:check": "pnpm -r fmt:check",
     "lint": "pnpm -r lint"
   },
   "devDependencies": {
     "fallow": "^3.23.0"
   },
   "dependencies": {
+    "@types/node": "^26.5.0",
+    "typescript": "^7.0.2",
     "vercel": "^59.11.7"
   }
 }

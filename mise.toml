@@ -4,8 +4,10 @@ lefthook = "2.1.10"
 node = "25.9.0"
 "npm:@antfu/ni" = "30.3.0"
 "npm:pnpm" = "11.17.0"
-python = "3.14.7"
 terraform = "1.15.5"
+"pipx:graphifyy" = "0.9.53"
+"pipx:serena-agent" = "1.7.0"
+uv = "0.12.9"
 
 [env]
 MISE_PIN = true

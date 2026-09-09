@@ -7,7 +7,7 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "fmt": "oxfmt .",
-    "fmt:fix": "oxfmt --fix .",
+    "fmt:check": "oxfmt --check .",
     "openapi:gen": "node ./script/generate_openapi.ts"
   },
   "dependencies": {

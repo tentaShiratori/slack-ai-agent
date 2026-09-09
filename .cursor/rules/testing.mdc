@@ -1,0 +1,10 @@
+---
+description: Test execution and case coverage rules
+alwaysApply: true
+---
+
+# テスト
+
+- 実行は `pnpm test run {ファイル名}` のみ
+- 全テスト実行は禁止
+- 正常系・異常系・境界値を含める

@@ -8,7 +8,7 @@
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
     "fmt": "oxfmt .",
-    "fmt:fix": "oxfmt --fix ."
+    "fmt:check": "oxfmt --check ."
   },
   "dependencies": {
     "oxfmt": "^0.67.0",

@@ -1,0 +1,19 @@
+[project]
+name = "language-teacher"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "tentaShiratori", email = "tenta.shiratori@gmail.com" }]
+requires-python = ">=3.14"
+dependencies = ["better-code-review-graph>=3.21.0", "code-review-graph>=2.3.8", "graphifyy>=0.8.38"]
+
+[project.scripts]
+kakeibo = "kakeibo:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+# src/kakeiboフォルダを不要にするための設定
+namespace = true
