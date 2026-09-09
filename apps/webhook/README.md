@@ -1,17 +1,15 @@
-# shiratori-slack-app
+# webhook
 
-インフラ構成図は [docs/architecture.md](docs/architecture.md) を参照。
+Slack 入口（Vercel / ローカル stand-in）。全体像はリポジトリルートの [README.md](../../README.md) と [docs/architecture.md](../../docs/architecture.md)。
 
-To install dependencies:
+## ローカル
 
-```bash
-bun install
+リポジトリルートで:
+
+```powershell
+mise run webhook
 ```
 
-To run:
+または `mise run dev`（worker・Redis 込み）。
 
-```bash
-bun run index.ts
-```
-
-This project was created using `bun init` in bun v1.0.4. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
+本番デプロイは [docs/deploy.md](../../docs/deploy.md)。
