@@ -1,0 +1,81 @@
+variable "project_id" {
+  type        = string
+  description = "GCP project ID"
+}
+
+variable "region" {
+  type        = string
+  description = "GCP region for Cloud Run, Artifact Registry, and Secret Manager"
+  default     = "asia-northeast1"
+}
+
+variable "name" {
+  type        = string
+  description = "Resource name prefix"
+  default     = "slack-ai-agent"
+}
+
+variable "upstash_email" {
+  type        = string
+  description = "Upstash console account email"
+}
+
+variable "upstash_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Upstash Management API key"
+}
+
+variable "upstash_redis_primary_region" {
+  type        = string
+  description = "Upstash global Redis primary region (Tokyo is not in the provider allowlist)"
+  default     = "ap-southeast-1"
+}
+
+variable "upstash_vector_region" {
+  type        = string
+  description = "Upstash Vector region"
+  default     = "us-east-1"
+}
+
+variable "upstash_vector_plan" {
+  type        = string
+  description = "Upstash Vector plan: free, paid, fixed, or pro"
+  default     = "free"
+}
+
+variable "vector_dimension_count" {
+  type        = number
+  description = "Embedding dimension. Match the model used to index wiki chunks"
+  default     = 384
+}
+
+variable "anthropic_api_key" {
+  type        = string
+  sensitive   = true
+  description = "Anthropic API key stored in Secret Manager"
+}
+
+variable "slack_bot_token" {
+  type        = string
+  sensitive   = true
+  description = "Slack bot token stored in Secret Manager"
+}
+
+variable "worker_image" {
+  type        = string
+  default     = ""
+  description = "Worker image URI. Empty uses the Cloud Run hello sample until the real image is pushed"
+}
+
+variable "worker_max_instances" {
+  type        = number
+  default     = 5
+  description = "Cloud Run max instances"
+}
+
+variable "allow_unauthenticated" {
+  type        = bool
+  default     = true
+  description = "Allow public Cloud Run invoke. Vercel authenticates with WORKER_SECRET"
+}

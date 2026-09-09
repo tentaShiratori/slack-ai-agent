@@ -1,18 +1,26 @@
 [tools]
+gcloud = "580.0.0"
 lefthook = "2.1.10"
 node = "25.9.0"
 "npm:@antfu/ni" = "30.3.0"
 "npm:pnpm" = "11.17.0"
+terraform = "1.15.5"
 
 [env]
 MISE_PIN = true
-_.file = { path = "infra/dev/.env", optional = true }
 WORKER_SECRET = "dev-secret"
 SKIP_SLACK_VERIFY = "1"
 REDIS_URL = "redis://127.0.0.1:6379"
 QDRANT_URL = "http://127.0.0.1:6333"
 QDRANT_COLLECTION = "wiki"
 WORKER_URL = "http://127.0.0.1:8080"
+
+[vars]
+gcp_region = "asia-northeast1"
+gcp_name = "slack-ai-agent"
+
+[task_config]
+includes = ["tasks"]
 
 [tasks.deps]
 description = "Start Redis and Qdrant in Docker"
@@ -32,7 +40,7 @@ env.PORT = "3000"
 
 [tasks.worker]
 description = "Agent worker on host (watch)"
-dir = "apps/agent-worker"
+dir = "apps/worker"
 run = "pnpm start"
 env.PORT = "8080"
 

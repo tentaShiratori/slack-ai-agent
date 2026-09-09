@@ -8,6 +8,8 @@ Vercel Hobby（Slack 入口）+ Cloud Run（Agent）+ Upstash Redis / Vector。
 - **Upstash Vector**: wiki の意味検索（後から足してもよい）
 - **Secret Manager**: `ANTHROPIC_API_KEY`、Slack token、Worker 秘密
 
+本番の GCP / Upstash は Terraform（[infra/prd](../infra/prd/README.md)）。Vercel の webhook は Terraform 対象外で、apply 後の `worker_url` を Vercel に渡す。
+
 ローカル再現はホストでアプリ、Docker で Redis / Qdrant。起動方法は [infra/dev/README.md](../infra/dev/README.md)。
 
 | 本番 | ローカル |

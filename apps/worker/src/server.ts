@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 
-const port = 8080;
+const port = Number(process.env.PORT ?? 8080);
 
 async function main() {
   console.log("starting worker");

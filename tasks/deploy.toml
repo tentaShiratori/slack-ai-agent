@@ -1,0 +1,13 @@
+[deploy-webhook]
+description = "Deploy apps/webhook to Vercel production"
+dir = "apps/webhook"
+run = "pnpm exec vercel --prod --yes"
+
+[deploy-worker]
+description = "Build apps/worker from source and deploy to Cloud Run"
+dir = "apps/worker"
+run = "gcloud run deploy {{ vars.gcp_name }}-worker --source . --region {{ vars.gcp_region }} --quiet"
+
+[deploy]
+description = "Deploy webhook to Vercel and worker to Cloud Run"
+depends = ["deploy-webhook", "deploy-worker"]

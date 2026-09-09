@@ -1,0 +1,9 @@
+project_id      = "YOUR_GCP_PROJECT"
+upstash_email   = "you@example.com"
+upstash_api_key = "upstash-management-api-key"
+
+anthropic_api_key = "sk-ant-..."
+slack_bot_token   = "xoxb-..."
+
+# After the first worker image is pushed:
+# worker_image = "asia-northeast1-docker.pkg.dev/YOUR_GCP_PROJECT/slack-ai-workerker/worker:latest"

@@ -1,0 +1,11 @@
+
+[infra-init]
+description = "Terraform init for production"
+dir = "infra/prd"
+run = "terraform init"
+
+[infra-plan]
+description = "Terraform plan for production"
+dir = "infra/prd"
+depends = ["init"]
+run = "terraform plan"
