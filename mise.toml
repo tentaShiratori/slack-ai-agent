@@ -1,0 +1,41 @@
+[tools]
+lefthook = "2.1.10"
+node = "25.9.0"
+"npm:@antfu/ni" = "30.3.0"
+"npm:pnpm" = "11.17.0"
+
+[env]
+MISE_PIN = true
+_.file = { path = "infra/dev/.env", optional = true }
+WORKER_SECRET = "dev-secret"
+SKIP_SLACK_VERIFY = "1"
+REDIS_URL = "redis://127.0.0.1:6379"
+QDRANT_URL = "http://127.0.0.1:6333"
+QDRANT_COLLECTION = "wiki"
+WORKER_URL = "http://127.0.0.1:8080"
+
+[tasks.deps]
+description = "Start Redis and Qdrant in Docker"
+dir = "infra/dev"
+run = "docker compose up -d --wait redis qdrant"
+
+[tasks.deps-down]
+description = "Stop Redis and Qdrant"
+dir = "infra/dev"
+run = "docker compose down"
+
+[tasks.webhook]
+description = "Slack Events webhook on host (watch)"
+dir = "apps/webhook"
+run = "node --watch --experimental-strip-types local/server.ts"
+env.PORT = "3000"
+
+[tasks.worker]
+description = "Agent worker on host (watch)"
+dir = "apps/agent-worker"
+run = "pnpm start"
+env.PORT = "8080"
+
+[tasks.dev]
+description = "Deps in Docker, webhook and worker on host with watch"
+depends = ["deps", "worker", "webhook"]

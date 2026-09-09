@@ -1,0 +1,13 @@
+packages:
+  - "apps/*"
+allowBuilds:
+  esbuild: true
+  mmap-io: true
+  shmmap: true
+tasks:
+  lint:
+    dependsOn:
+      - ^lint
+  fmt:
+    dependsOn:
+      - ^fmt

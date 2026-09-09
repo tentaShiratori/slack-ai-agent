@@ -1,0 +1,22 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --watch --experimental-strip-types src/server.ts",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "fmt": "oxfmt .",
+    "fmt:fix": "oxfmt --fix ."
+  },
+  "dependencies": {
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.5.0",
+    "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2"
+  }
+}

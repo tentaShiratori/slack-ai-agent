@@ -1,0 +1,23 @@
+{
+  "plugins": [
+    "eslint",
+    "typescript",
+    "unicorn",
+    "oxc",
+    "react",
+    "jsx-a11y",
+    "import",
+    "vitest"
+  ],
+  "options": {
+    "typeAware": true
+  },
+  "rules": {
+    "max-lines": [
+      "error",
+      {
+        "max": 200
+      }
+    ]
+  }
+}

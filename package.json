@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "dead-code": "fallow dead-code && fallow dead-code --production",
+    "fmt": "pnpm -r fmt",
+    "lint": "pnpm -r lint"
+  },
+  "devDependencies": {
+    "fallow": "^3.23.0"
+  }
+}

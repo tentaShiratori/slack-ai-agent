@@ -1,0 +1,31 @@
+{
+  "name": "webhook",
+  "type": "module",
+  "module": "index.ts",
+  "scripts": {
+    "start": "vercel dev",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "fmt": "oxfmt .",
+    "fmt:fix": "oxfmt --fix .",
+    "openapi:gen": "node ./script/generate_openapi.ts"
+  },
+  "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^6.4.0",
+    "@slack/bolt": "^5.1.0",
+    "@types/js-yaml": "^4.0.9",
+    "@vercel/node": "^12.0.1",
+    "js-yaml": "^5.4.1",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
+    "tsscmp": "^1.0.6",
+    "vercel": "^59.11.7",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "oxlint-tsgolint": "^7.0.2001"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

@@ -1,0 +1,37 @@
+# ローカル再現
+
+アプリはホスト（mise / Node `--watch`）、Redis と Qdrant だけ Docker。Windows の bind mount によるファイル監視の問題を避ける。
+
+| 本番 | ローカル |
+|---|---|
+| Vercel Hobby | ホスト `webhook` (`localhost:3000`) |
+| Cloud Run | ホスト `worker` (`localhost:8080`) |
+| Upstash Redis | Docker `redis` (`localhost:6379`) |
+| Upstash Vector | Docker `qdrant` (`localhost:6333`) |
+| Secret Manager | `infra/dev/.env` |
+
+起動:
+
+Docker Desktop を起動したうえで:
+
+```bash
+cp infra/dev/.env.example infra/dev/.env
+mise run dev
+```
+
+データストアだけ起動 / 停止:
+
+```bash
+mise run deps
+mise run deps-down
+```
+
+偽 Slack イベント（署名検証は `SKIP_SLACK_VERIFY=1` でスキップ）:
+
+```powershell
+curl.exe -s http://localhost:3000/api/slack/events `
+  -H "content-type: application/json" `
+  -d '{"type":"event_callback","event_id":"evt-1","event":{"channel":"C123","ts":"1.0","text":"hello wiki"}}'
+```
+
+Claude Agent SDK はまだスタブです。Redis lock / session mapping / Qdrant 検索まではこの構成で再現します。
