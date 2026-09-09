@@ -47,6 +47,26 @@ resource "google_cloud_run_v2_service" "worker" {
         startup_cpu_boost = true
       }
 
+      startup_probe {
+        http_get {
+          path = "/health"
+        }
+        initial_delay_seconds = 0
+        timeout_seconds       = 1
+        period_seconds        = 3
+        failure_threshold     = 10
+      }
+
+      liveness_probe {
+        http_get {
+          path = "/health"
+        }
+        initial_delay_seconds = 0
+        timeout_seconds       = 1
+        period_seconds        = 10
+        failure_threshold     = 3
+      }
+
       env {
         name  = "QDRANT_COLLECTION"
         value = upstash_vector_index.wiki.name

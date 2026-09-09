@@ -7,5 +7,9 @@ run = "terraform init"
 [infra-plan]
 description = "Terraform plan for production"
 dir = "infra/prd"
-depends = ["init"]
 run = "terraform plan"
+
+[infra-apply]
+description = "Terraform apply for production"
+dir = "infra/prd"
+run = "terraform apply"

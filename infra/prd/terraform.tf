@@ -16,9 +16,9 @@ terraform {
     }
   }
 
-  # 状態を GCS に置く場合はコメントを外す。
-  # backend "gcs" {
-  #   bucket = "YOUR_TFSTATE_BUCKET"
-  #   prefix = "slack-ai-agent/prd"
-  # }
+  backend "s3" {
+    bucket = "tenta-tfstate"
+    key    = "slack-ai-agent/prd"
+    region = "ap-northeast-1"
+  }
 }

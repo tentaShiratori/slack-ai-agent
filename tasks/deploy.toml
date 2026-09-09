@@ -1,6 +1,5 @@
 [deploy-webhook]
 description = "Deploy apps/webhook to Vercel production"
-dir = "apps/webhook"
 run = "pnpm exec vercel --prod --yes"
 
 [deploy-worker]

@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      vercel:
+        specifier: ^59.11.7
+        version: 59.11.7(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
     devDependencies:
       fallow:
         specifier: ^3.23.0
@@ -41,9 +45,6 @@ importers:
       typescript:
         specifier: ^5.0.0
         version: 5.9.3
-      vercel:
-        specifier: ^59.11.7
-        version: 59.11.7(@emnapi/core@1.11.3)(@emnapi/runtime@1.11.3)
       zod:
         specifier: ^4.5.4
         version: 4.5.4
