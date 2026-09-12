@@ -22,7 +22,7 @@ grilling セッションで合意した Done の線。実装・issue・受け入
 
 - デフォルトの `owner/repo`・Project・Discussion 用リポは環境変数。値は完成時点で未定でもよいが、枠と文書はある
 - GitHub 認証: fine-grained PAT（Secret Manager）
-- 実行基盤: Vercel（ack）+ Cloud Run（Cursor SDK）+ Redis（session / lock / dedup）
+- 実行基盤: Vercel（ack + Cloud Tasks enqueue）+ Cloud Run（Cursor SDK）+ Redis（session / lock / dedup）
 
 ### 運用（GCP / Sentry 無料枠）
 

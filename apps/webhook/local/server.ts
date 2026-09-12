@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "../lib/env.ts";
+import { enqueueJob } from "../lib/enqueue-job.ts";
+import { handleSlackEvent } from "../lib/handle-slack-event.ts";
 import { errorFields, log } from "../lib/logger.ts";
 import { captureException, initSentry } from "../lib/sentry.ts";
 
@@ -11,8 +13,6 @@ initSentry({
 });
 
 const port = env.PORT;
-const workerUrl = env.WORKER_URL;
-const workerSecret = env.WORKER_SECRET;
 const skipSlackVerify = env.SKIP_SLACK_VERIFY === "1";
 const signingSecret = env.SLACK_SIGNING_SECRET ?? "";
 
@@ -62,32 +62,8 @@ async function handleEvents(req: IncomingMessage, res: ServerResponse) {
     return;
   }
 
-  let body: Record<string, unknown>;
-  try {
-    body = JSON.parse(rawBody.toString("utf8")) as Record<string, unknown>;
-  } catch {
-    json(res, 400, { error: "invalid_json" });
-    return;
-  }
-
-  if (body.type === "url_verification") {
-    json(res, 200, { challenge: body.challenge });
-    return;
-  }
-
-  json(res, 200, { ok: true });
-
-  fetch(`${workerUrl}/jobs`, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "x-worker-secret": workerSecret,
-    },
-    body: rawBody,
-  }).catch((error: unknown) => {
-    captureException(error);
-    log("ERROR", "failed to dispatch worker", errorFields(error));
-  });
+  const result = await handleSlackEvent(rawBody.toString("utf8"), enqueueJob);
+  json(res, result.status, result.body);
 }
 
 const server = createServer(async (req, res) => {

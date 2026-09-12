@@ -1,11 +1,35 @@
 output "worker_url" {
-  description = "Set this as WORKER_URL on the Vercel webhook"
+  description = "Cloud Tasks HTTP target (POST /jobs). Set as WORKER_URL on Vercel"
   value       = google_cloud_run_v2_service.worker.uri
 }
 
 output "worker_secret_id" {
   description = "Secret Manager id for WORKER_SECRET. Read with: gcloud secrets versions access latest --secret=NAME"
   value       = google_secret_manager_secret.this["worker-secret"].secret_id
+}
+
+output "cloud_tasks_queue" {
+  description = "Set as CLOUD_TASKS_QUEUE on Vercel"
+  value       = google_cloud_tasks_queue.jobs.name
+}
+
+output "cloud_tasks_location" {
+  description = "Set as CLOUD_TASKS_LOCATION on Vercel"
+  value       = google_cloud_tasks_queue.jobs.location
+}
+
+output "cloud_tasks_invoker_sa" {
+  description = "Set as CLOUD_TASKS_INVOKER_SA on Vercel"
+  value       = google_service_account.tasks_invoker.email
+}
+
+output "webhook_enqueuer_sa" {
+  value = google_service_account.webhook_enqueuer.email
+}
+
+output "webhook_enqueuer_key_secret_id" {
+  description = "JSON key for GCP_TASKS_SA_KEY. Read with: gcloud secrets versions access latest --secret=NAME"
+  value       = google_secret_manager_secret.webhook_enqueuer_key.secret_id
 }
 
 output "artifact_registry_repository" {
