@@ -50,10 +50,10 @@ variable "vector_dimension_count" {
   default     = 384
 }
 
-variable "anthropic_api_key" {
+variable "cursor_api_key" {
   type        = string
   sensitive   = true
-  description = "Anthropic API key stored in Secret Manager"
+  description = "Cursor API key stored in Secret Manager"
 }
 
 variable "slack_bot_token" {

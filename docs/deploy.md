@@ -13,7 +13,7 @@
 - [Vercel](https://vercel.com/) アカウント（Hobby で可）
 - [Upstash Management API key](https://console.upstash.com/account/api)
 - Slack アプリの Bot Token（`xoxb-...`）と Signing Secret
-- Anthropic API key
+- Cursor API key（[Dashboard → Integrations](https://cursor.com/dashboard/integrations)）
 
 リポジトリルートでツールを入れる:
 
@@ -80,7 +80,7 @@ cd infra/prd
 copy terraform.tfvars.example terraform.tfvars
 ```
 
-`terraform.tfvars` に `project_id`、Upstash、`anthropic_api_key`、`slack_bot_token` を入れる。ファイルは git 対象外。
+`terraform.tfvars` に `project_id`、Upstash、`cursor_api_key`、`slack_bot_token` を入れる。ファイルは git 対象外。
 
 ```powershell
 mise run infra-init

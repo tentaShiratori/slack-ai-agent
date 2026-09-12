@@ -2,7 +2,7 @@ project_id      = "YOUR_GCP_PROJECT"
 upstash_email   = "you@example.com"
 upstash_api_key = "upstash-management-api-key"
 
-anthropic_api_key = "sk-ant-..."
+cursor_api_key = "cursor_..."
 slack_bot_token   = "xoxb-..."
 
 # After the first worker image is pushed:

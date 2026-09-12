@@ -15,9 +15,9 @@ Slack の slash から:
 Vercel Hobby（Slack 入口）+ Cloud Run（Agent）+ Upstash Redis。Upstash Vector は **wiki RAG 後続用**（Terraform / ローカル Qdrant は用意済みだが v1 では使わない）。
 
 - **Vercel**: 署名検証と 3 秒 ack（Events / slash / interactivity）
-- **Cloud Run**: Claude Agent SDK、GitHub API、Slack 返信
+- **Cloud Run**: Cursor SDK、GitHub API、Slack 返信
 - **Upstash Redis**: スレッド↔session、transcript、lock、重複排除
-- **Secret Manager**: `ANTHROPIC_API_KEY`、Slack token、GitHub PAT、Worker 秘密
+- **Secret Manager**: `CURSOR_API_KEY`、Slack token、GitHub PAT、Worker 秘密
 
 本番の GCP / Upstash は Terraform（[infra/prd](../infra/prd/README.md)）。Vercel は Terraform 対象外で、apply 後の `worker_url` を渡す。
 
@@ -62,7 +62,7 @@ flowchart TB
   end
 
   subgraph gcpSide [GCP]
-    Run[Cloud Run Worker\nClaude Agent SDK]
+    Run[Cloud Run Worker\nCursor SDK]
     SM[Secret Manager]
   end
 
@@ -76,14 +76,14 @@ flowchart TB
     Disc[Discussions]
   end
 
-  Claude[Anthropic API]
+  Cursor[Cursor API]
 
   User --> SlackAPI
   SlackAPI --> Edge
   Edge -->|"POST + shared secret"| Run
   Run --> SM
   Run --> Redis
-  Run --> Claude
+  Run --> Cursor
   Run --> Issues
   Run --> Project
   Run --> Disc
@@ -100,15 +100,15 @@ sequenceDiagram
   participant Vercel
   participant Run as CloudRun
   participant Redis
-  participant Claude as Anthropic
+  participant Cursor as Cursor SDK
   participant GH as GitHub
 
   Slack->>Vercel: slash or view_submission
   Vercel->>Vercel: verify and ack
   Vercel->>Run: POST job
   Run->>Redis: SETNX eventId and lock
-  Run->>Claude: organize title body labels
-  Claude-->>Run: structured issue draft
+  Run->>Cursor: organize title body labels
+  Cursor-->>Run: structured issue draft
   Run->>GH: create Issue
   Run->>GH: add Issue to Project
   Run->>Slack: reply with Issue URL
@@ -125,14 +125,14 @@ sequenceDiagram
   participant Vercel
   participant Run as CloudRun
   participant Redis
-  participant Claude as Anthropic
+  participant Cursor as Cursor SDK
   participant GH as GitHub
 
   Slack->>Vercel: /grill or thread reply
   Vercel->>Run: POST job
   Run->>Redis: lock + get sessionId
-  Run->>Claude: grilling round resume sessionId
-  Claude-->>Run: questions or summary
+  Run->>Cursor: grilling round resume agentId
+  Cursor-->>Run: questions or summary
   alt still grilling
     Run->>Slack: post next questions in thread
   else finished

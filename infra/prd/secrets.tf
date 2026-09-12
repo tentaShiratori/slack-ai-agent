@@ -6,7 +6,7 @@ resource "random_password" "worker_secret" {
 resource "google_secret_manager_secret" "this" {
   for_each = toset([
     "worker-secret",
-    "anthropic-api-key",
+    "cursor-api-key",
     "slack-bot-token",
     "redis-url",
     "upstash-redis-rest-url",
@@ -27,7 +27,7 @@ resource "google_secret_manager_secret" "this" {
 resource "google_secret_manager_secret_version" "this" {
   for_each = {
     worker-secret             = random_password.worker_secret.result
-    anthropic-api-key         = var.anthropic_api_key
+    cursor-api-key            = var.cursor_api_key
     slack-bot-token           = var.slack_bot_token
     redis-url                 = local.redis_url
     upstash-redis-rest-url    = local.upstash_redis_rest_url

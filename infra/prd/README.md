@@ -30,6 +30,7 @@ terraform apply
 | `project_id` | GCP プロジェクト |
 | `region` | 既定 `asia-northeast1` |
 | `upstash_redis_primary_region` | 既定 `ap-southeast-1`（Tokyo は Upstash global の候補に無い） |
+| `cursor_api_key` | Cursor API key（Secret Manager → Cloud Run の `CURSOR_API_KEY`） |
 | `allow_unauthenticated` | Vercel から叩くため既定 true。実体の認証は `WORKER_SECRET` |
 
 状態ファイルは git に含めない。チームで共有するときは `terraform.tf` の GCS backend コメントを外す。

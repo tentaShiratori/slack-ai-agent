@@ -3,7 +3,7 @@ locals {
 
   worker_secret_env = {
     WORKER_SECRET             = "worker-secret"
-    ANTHROPIC_API_KEY         = "anthropic-api-key"
+    CURSOR_API_KEY            = "cursor-api-key"
     SLACK_BOT_TOKEN           = "slack-bot-token"
     REDIS_URL                 = "redis-url"
     UPSTASH_REDIS_REST_URL    = "upstash-redis-rest-url"
