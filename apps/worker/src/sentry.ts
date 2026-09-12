@@ -16,7 +16,10 @@ export function initSentry(options?: { dsn?: string; environment?: string }): bo
   Sentry.init({
     dsn,
     environment:
-      options?.environment ?? process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? "production",
+      options?.environment ??
+      process.env.SENTRY_ENVIRONMENT ??
+      process.env.NODE_ENV ??
+      "production",
   });
   enabled = true;
   return true;

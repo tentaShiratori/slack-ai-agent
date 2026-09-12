@@ -21,7 +21,10 @@ function mockRes(headersSent = false) {
     headersSent,
     status: vi.fn<(code: number) => VercelResponse>().mockReturnThis(),
     json: vi.fn<(body: unknown) => VercelResponse>(),
-  } as unknown as VercelResponse & { status: ReturnType<typeof vi.fn>; json: ReturnType<typeof vi.fn> };
+  } as unknown as VercelResponse & {
+    status: ReturnType<typeof vi.fn>;
+    json: ReturnType<typeof vi.fn>;
+  };
 }
 
 beforeEach(() => {

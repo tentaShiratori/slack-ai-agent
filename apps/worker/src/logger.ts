@@ -15,7 +15,11 @@ export function errorFields(error: unknown): Record<string, unknown> {
   return { errorMessage: String(error) };
 }
 
-export function log(severity: Severity, message: string, fields: Record<string, unknown> = {}): string {
+export function log(
+  severity: Severity,
+  message: string,
+  fields: Record<string, unknown> = {},
+): string {
   const entry = {
     ...fields,
     severity,
