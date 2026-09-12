@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "./internal/lib/constant/env.ts";
 import { handleRequest } from "./internal/controller/http.ts";
+import { createOpenBugModal } from "./internal/infra/slack/open-bug-modal.ts";
 import { enqueueJob } from "./internal/usecase/enqueue-job.ts";
 import { errorFields, log } from "./internal/lib/metrics/logger.ts";
 import { captureException, flushSentry, initSentry } from "./internal/lib/metrics/sentry.ts";
@@ -51,6 +52,7 @@ const server = createServer(async (req, res) => {
         signingSecret: env.SLACK_SIGNING_SECRET ?? "",
         skipVerify: env.SKIP_SLACK_VERIFY === "1",
         enqueue: enqueueJob,
+        openBugModal: createOpenBugModal(env.SLACK_BOT_TOKEN ?? ""),
       },
     );
     json(res, result.status, result.body);

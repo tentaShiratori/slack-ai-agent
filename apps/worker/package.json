@@ -12,6 +12,7 @@
     "fmt:check": "oxfmt --check ."
   },
   "dependencies": {
+    "@cursor/sdk": "^1.0.31",
     "@sentry/node": "^10.74.0",
     "@t3-oss/env-core": "^0.13.11",
     "redis": "^6.2.1",

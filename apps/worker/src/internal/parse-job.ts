@@ -1,7 +1,11 @@
+import { bugReplyThreadTs, parseBugReport, type BugReport } from "./parse-bug.ts";
+
 export type Job = {
   eventId: string;
   channelId: string;
   threadTs: string;
+  replyThreadTs?: string;
+  bug?: BugReport;
 };
 
 export class JobParseError extends Error {
@@ -49,5 +53,19 @@ export function parseJob(body: unknown): Job {
     throw new JobParseError("invalid_job");
   }
 
-  return { eventId, channelId, threadTs };
+  let bug: BugReport | undefined;
+  try {
+    bug = parseBugReport(record);
+  } catch {
+    throw new JobParseError("invalid_job");
+  }
+
+  const replyThreadTs = bugReplyThreadTs(record);
+  return {
+    eventId,
+    channelId,
+    threadTs,
+    ...(replyThreadTs ? { replyThreadTs } : {}),
+    ...(bug ? { bug } : {}),
+  };
 }

@@ -2,6 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { env } from "../lib/constant/env.ts";
 import { errorFields, log } from "../lib/metrics/logger.ts";
 import { captureException, flushSentry, initSentry } from "../lib/metrics/sentry.ts";
+import { createOpenBugModal } from "../infra/slack/open-bug-modal.ts";
 import { enqueueJob } from "../usecase/enqueue-job.ts";
 import { handleRequest } from "./http.ts";
 
@@ -46,6 +47,7 @@ export async function slackVercelHandler(req: VercelRequest, res: VercelResponse
         signingSecret: env.SLACK_SIGNING_SECRET ?? "",
         skipVerify: env.SKIP_SLACK_VERIFY === "1" || env.VERCEL_ENV === "development",
         enqueue: enqueueJob,
+        openBugModal: createOpenBugModal(env.SLACK_BOT_TOKEN ?? ""),
       },
     );
     res.status(result.status).json(result.body);

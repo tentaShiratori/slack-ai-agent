@@ -8,6 +8,8 @@ const valid = {
   GITHUB_DEFAULT_REPO: "acme/app",
   GITHUB_PROJECT_ID: "PVT_1",
   GITHUB_DISCUSSION_CATEGORY_ID: "DIC_1",
+  SLACK_BOT_TOKEN: "xoxb-dev",
+  CURSOR_API_KEY: "cursor-dev",
 };
 
 test("必須変数があれば通る", () => {
@@ -105,6 +107,8 @@ test("GITHUB_PAT が無いと失敗する", () => {
       GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
       GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
       GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
+      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
+      CURSOR_API_KEY: valid.CURSOR_API_KEY,
     }),
   ).toThrow("Invalid environment variables");
 });
@@ -131,4 +135,38 @@ test("空文字の GitHub 変数は失敗する", () => {
   expect(() => createWorkerEnv({ ...valid, GITHUB_DISCUSSION_CATEGORY_ID: "" })).toThrow(
     "Invalid environment variables",
   );
+});
+
+test("Slack と Cursor の必須変数を読む", () => {
+  const env = createWorkerEnv(valid);
+  expect(env.SLACK_BOT_TOKEN).toBe("xoxb-dev");
+  expect(env.CURSOR_API_KEY).toBe("cursor-dev");
+});
+
+test("SLACK_BOT_TOKEN が無いと失敗する", () => {
+  expect(() =>
+    createWorkerEnv({
+      REDIS_URL: valid.REDIS_URL,
+      WORKER_SECRET: valid.WORKER_SECRET,
+      GITHUB_PAT: valid.GITHUB_PAT,
+      GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
+      GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
+      GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
+      CURSOR_API_KEY: valid.CURSOR_API_KEY,
+    }),
+  ).toThrow("Invalid environment variables");
+});
+
+test("CURSOR_API_KEY が無いと失敗する", () => {
+  expect(() =>
+    createWorkerEnv({
+      REDIS_URL: valid.REDIS_URL,
+      WORKER_SECRET: valid.WORKER_SECRET,
+      GITHUB_PAT: valid.GITHUB_PAT,
+      GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
+      GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
+      GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
+      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
+    }),
+  ).toThrow("Invalid environment variables");
 });
