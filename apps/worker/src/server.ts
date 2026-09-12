@@ -1,12 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { env } from "./env.ts";
 import { handleRequest } from "./internal/controller/http.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
 
-process.env.SERVICE_NAME ??= "worker";
+process.env.SERVICE_NAME ??= env.SERVICE_NAME ?? "worker";
 
-const port = Number(process.env.PORT ?? 8080);
+const port = env.PORT;
 
 function header(req: IncomingMessage, name: string): string | undefined {
   const value = req.headers[name];
@@ -31,17 +32,15 @@ function json(res: ServerResponse, status: number, body: unknown) {
 }
 
 async function main() {
-  initSentry();
-
-  const redisUrl = process.env.REDIS_URL;
-  if (!redisUrl) {
-    throw new Error("REDIS_URL is required");
-  }
+  initSentry({
+    dsn: env.SENTRY_DSN,
+    environment: env.SENTRY_ENVIRONMENT ?? env.NODE_ENV,
+  });
 
   log("INFO", "starting worker");
-  const store = await connectRedisJobStore(redisUrl);
+  const store = await connectRedisJobStore(env.REDIS_URL);
   const deps = {
-    expectedSecret: process.env.WORKER_SECRET ?? "",
+    expectedSecret: env.WORKER_SECRET,
     accept: { store },
   };
 
