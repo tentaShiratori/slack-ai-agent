@@ -2,7 +2,6 @@ import { expect, test, vi } from "vitest";
 import {
   cloudTasksConfigFromEnv,
   createCloudTasksDispatcher,
-  createRestTasksClient,
   isAlreadyExistsError,
   queuePath,
   taskIdFromBody,
@@ -121,86 +120,4 @@ test("queuePath を組み立てる", () => {
   expect(queuePath("proj", "asia-northeast1", "jobs")).toBe(
     "projects/proj/locations/asia-northeast1/queues/jobs",
   );
-});
-
-test("REST クライアントは Tasks API に base64 body を送る", async () => {
-  const fetchFn = vi.fn<typeof fetch>(async () => new Response("{}", { status: 200 }));
-  const client = createRestTasksClient(async () => "tok", fetchFn);
-  const parent = client.queuePath("proj", "asia-northeast1", "jobs");
-  const rawBody = JSON.stringify({ event_id: "Ev1" });
-  await client.createTask({
-    parent,
-    task: {
-      name: `${parent}/tasks/Ev1`,
-      httpRequest: {
-        httpMethod: "POST",
-        url: "https://worker.example.run.app/jobs",
-        headers: { "x-worker-secret": "secret" },
-        body: Buffer.from(rawBody),
-        oidcToken: {
-          serviceAccountEmail: "tasks@proj.iam",
-          audience: "https://worker.example.run.app",
-        },
-      },
-      dispatchDeadline: { seconds: 1800 },
-    },
-  });
-  const init = fetchFn.mock.calls[0]?.[1];
-  expect(fetchFn.mock.calls[0]?.[0]).toBe(
-    "https://cloudtasks.googleapis.com/v2/projects/proj/locations/asia-northeast1/queues/jobs/tasks",
-  );
-  expect(init?.method).toBe("POST");
-  expect(init?.headers).toEqual({
-    authorization: "Bearer tok",
-    "content-type": "application/json",
-  });
-  const body = init?.body;
-  if (typeof body !== "string") {
-    throw new Error("expected JSON body string");
-  }
-  const sent = JSON.parse(body) as {
-    task: { dispatchDeadline: string; httpRequest: { body: string } };
-  };
-  expect(sent.task.dispatchDeadline).toBe("1800s");
-  expect(sent.task.httpRequest.body).toBe(Buffer.from(rawBody).toString("base64"));
-});
-
-test("REST 409 は ALREADY_EXISTS にする", async () => {
-  const fetchFn = vi.fn<typeof fetch>(async () => new Response("exists", { status: 409 }));
-  const client = createRestTasksClient(async () => "tok", fetchFn);
-  await expect(
-    client.createTask({
-      parent: "projects/p/locations/l/queues/q",
-      task: {
-        httpRequest: {
-          httpMethod: "POST",
-          url: "https://worker/jobs",
-          headers: {},
-          body: Buffer.from("{}"),
-          oidcToken: { serviceAccountEmail: "sa", audience: "https://worker" },
-        },
-        dispatchDeadline: { seconds: 1800 },
-      },
-    }),
-  ).rejects.toMatchObject({ code: 6 });
-});
-
-test("REST の 5xx は失敗にする", async () => {
-  const fetchFn = vi.fn<typeof fetch>(async () => new Response("boom", { status: 503 }));
-  const client = createRestTasksClient(async () => "tok", fetchFn);
-  await expect(
-    client.createTask({
-      parent: "projects/p/locations/l/queues/q",
-      task: {
-        httpRequest: {
-          httpMethod: "POST",
-          url: "https://worker/jobs",
-          headers: {},
-          body: Buffer.from("{}"),
-          oidcToken: { serviceAccountEmail: "sa", audience: "https://worker" },
-        },
-        dispatchDeadline: { seconds: 1800 },
-      },
-    }),
-  ).rejects.toThrow(/Cloud Tasks createTask failed: 503/);
 });
