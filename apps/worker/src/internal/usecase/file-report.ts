@@ -1,13 +1,13 @@
 import type { GitHubClient } from "../github.ts";
 import type { Job } from "../parse-job.ts";
-import type { SlackClient } from "../slack.ts";
 import type { IssueDraft } from "./organize-report.ts";
+import type { SlackPoster } from "../infra/slack/post-message.ts";
 
 export type OrganizeSlash = (report: NonNullable<Job["report"]>) => Promise<IssueDraft>;
 
 export type FileReportDeps = {
   github: GitHubClient;
-  slack: SlackClient;
+  slack: SlackPoster;
   organize: OrganizeSlash;
   onError?: (error: unknown) => void;
 };

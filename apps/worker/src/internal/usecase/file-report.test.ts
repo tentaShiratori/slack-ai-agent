@@ -1,8 +1,8 @@
 import { expect, test, vi } from "vitest";
 import type { GitHubClient } from "../github.ts";
 import type { Job } from "../parse-job.ts";
-import type { SlackClient } from "../slack.ts";
 import { fileSlashReport, type OrganizeSlash } from "./file-report.ts";
+import type { SlackPoster } from "../infra/slack/post-message.ts";
 
 const report = { kind: "feature" as const, instruction: "ログインを足す" };
 
@@ -37,11 +37,11 @@ function github(extra?: Partial<GitHubClient>): GitHubClient & {
   };
 }
 
-function slack(extra?: Partial<SlackClient>): SlackClient & {
-  postMessage: ReturnType<typeof vi.fn<SlackClient["postMessage"]>>;
+function slack(extra?: Partial<SlackPoster>): SlackPoster & {
+  postMessage: ReturnType<typeof vi.fn<SlackPoster["postMessage"]>>;
 } {
   return {
-    postMessage: vi.fn<SlackClient["postMessage"]>(async () => undefined),
+    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => undefined),
     ...extra,
   };
 }
@@ -187,7 +187,7 @@ test("エラー返信も失敗したら onError する", async () => {
       }),
     }),
     slack: slack({
-      postMessage: vi.fn<SlackClient["postMessage"]>(async () => {
+      postMessage: vi.fn<SlackPoster["postMessage"]>(async () => {
         throw new Error("slack down");
       }),
     }),

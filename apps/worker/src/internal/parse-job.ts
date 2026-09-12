@@ -6,6 +6,10 @@ export type Job = {
   threadTs: string;
   replyThreadTs?: string;
   report?: SlashReport;
+  eventType?: string;
+  text?: string;
+  botId?: string;
+  subtype?: string;
 };
 
 export class JobParseError extends Error {
@@ -24,6 +28,10 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 
 function asNonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function asString(value: unknown): string {
+  return typeof value === "string" ? value : "";
 }
 
 export function parseJob(body: unknown): Job {
@@ -55,11 +63,20 @@ export function parseJob(body: unknown): Job {
 
   const report = parseSlashReport(record);
   const replyThreadTs = report ? slashReplyThreadTs(record) : undefined;
+  const eventType = asNonEmptyString(event?.type);
+  const text = asString(event?.text) || asString(record.text);
+  const botId = asNonEmptyString(event?.bot_id) ?? asNonEmptyString(record.botId);
+  const subtype = asNonEmptyString(event?.subtype) ?? asNonEmptyString(record.subtype);
+
   return {
     eventId,
     channelId,
     threadTs,
     ...(replyThreadTs ? { replyThreadTs } : {}),
     ...(report ? { report } : {}),
+    ...(eventType ? { eventType } : {}),
+    ...(text ? { text } : {}),
+    ...(botId ? { botId } : {}),
+    ...(subtype ? { subtype } : {}),
   };
 }

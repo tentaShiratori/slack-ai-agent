@@ -14,6 +14,7 @@ test("/feature を report にする", () => {
     eventId: "trig-1",
     channelId: "C123",
     threadTs: "trig-1",
+    text: "add login",
     report: { kind: "feature", instruction: "add login" },
   });
 });
@@ -66,7 +67,7 @@ test("報告以外の slash は report を付けない", () => {
       channel_id: "C123",
       thread_ts: "1.0",
     }),
-  ).toEqual({ eventId: "trig-1", channelId: "C123", threadTs: "1.0" });
+  ).toEqual({ eventId: "trig-1", channelId: "C123", threadTs: "1.0", text: "theme" });
 });
 
 test("空の指示文でも report は付ける", () => {

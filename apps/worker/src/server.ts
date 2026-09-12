@@ -4,9 +4,10 @@ import { handleRequest } from "./internal/controller/http.ts";
 import { createCursorPrompt } from "./internal/infra/cursor-agent.ts";
 import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
-import { createSlackClient } from "./internal/infra/slack-client.ts";
+import { createSlackPoster } from "./internal/infra/slack/post-message.ts";
 import { fileSlashReport } from "./internal/usecase/file-report.ts";
 import { organizeSlashReport } from "./internal/usecase/organize-report.ts";
+import { replyMentionHelp } from "./internal/usecase/reply-mention-help.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
 
@@ -44,8 +45,8 @@ async function main() {
 
   log("INFO", "starting worker");
   const store = await connectRedisJobStore(env.REDIS_URL);
+  const slack = createSlackPoster(env.SLACK_BOT_TOKEN);
   const github = createGitHubClient(githubConfigFromEnv(env));
-  const slack = createSlackClient(env.SLACK_BOT_TOKEN);
   const prompt = createCursorPrompt(env.CURSOR_API_KEY, env.GITHUB_DEFAULT_REPO);
   const deps = {
     expectedSecret: env.WORKER_SECRET,
@@ -53,6 +54,7 @@ async function main() {
       store,
       github,
       process: async ({ job }) => {
+        await replyMentionHelp(job, slack);
         await fileSlashReport(job, {
           github,
           slack,

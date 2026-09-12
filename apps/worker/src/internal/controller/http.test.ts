@@ -130,6 +130,29 @@ test("Slack event_callback を受けて accepted", async () => {
   expect(res.body).toMatchObject({ status: "accepted", eventId: "evt-1" });
 });
 
+test("app_mention は process に eventType 付きで渡る", async () => {
+  const processed: Array<string | undefined> = [];
+  const res = await handleRequest(
+    {
+      method: "POST",
+      url: "/jobs",
+      workerSecret: secret,
+      rawBody: JSON.stringify({
+        type: "event_callback",
+        event_id: "evt-1",
+        event: { type: "app_mention", channel: "C123", ts: "1.0", text: "<@U123>" },
+      }),
+    },
+    deps(createMemoryJobStore(), {
+      process: async ({ job }) => {
+        processed.push(job.eventType);
+      },
+    }),
+  );
+  expect(res.status).toBe(200);
+  expect(processed).toEqual(["app_mention"]);
+});
+
 test("同一 event の再送は duplicate", async () => {
   const store = createMemoryJobStore();
   const d = deps(store);
