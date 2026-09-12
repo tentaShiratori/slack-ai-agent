@@ -18,6 +18,10 @@ REDIS_URL = "redis://127.0.0.1:6379"
 QDRANT_URL = "http://127.0.0.1:6333"
 QDRANT_COLLECTION = "wiki"
 WORKER_URL = "http://127.0.0.1:8080"
+GITHUB_PAT = "dev-github-pat"
+GITHUB_DEFAULT_REPO = "example/repo"
+GITHUB_PROJECT_ID = "PVT_dev"
+GITHUB_DISCUSSION_CATEGORY_ID = "DIC_dev"
 
 [vars]
 gcp_region = "asia-northeast1"

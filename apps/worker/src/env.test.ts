@@ -5,6 +5,10 @@ const valid = {
   REDIS_URL: "redis://127.0.0.1:6379",
   WORKER_SECRET: "dev-secret",
   SLACK_BOT_TOKEN: "xoxb-dev",
+  GITHUB_PAT: "github_pat_dev",
+  GITHUB_DEFAULT_REPO: "acme/app",
+  GITHUB_PROJECT_ID: "PVT_1",
+  GITHUB_DISCUSSION_CATEGORY_ID: "DIC_1",
 };
 
 test("必須変数があれば通る", () => {
@@ -26,21 +30,18 @@ test("PORT が 0 以下だと失敗する", () => {
 });
 
 test("REDIS_URL が無いと失敗する", () => {
-  expect(() =>
-    createWorkerEnv({ WORKER_SECRET: "dev-secret", SLACK_BOT_TOKEN: "xoxb-dev" }),
-  ).toThrow("Invalid environment variables");
+  const { REDIS_URL: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });
 
 test("WORKER_SECRET が無いと失敗する", () => {
-  expect(() =>
-    createWorkerEnv({ REDIS_URL: valid.REDIS_URL, SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN }),
-  ).toThrow("Invalid environment variables");
+  const { WORKER_SECRET: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });
 
 test("SLACK_BOT_TOKEN が無いと失敗する", () => {
-  expect(() =>
-    createWorkerEnv({ REDIS_URL: valid.REDIS_URL, WORKER_SECRET: valid.WORKER_SECRET }),
-  ).toThrow("Invalid environment variables");
+  const { SLACK_BOT_TOKEN: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });
 
 test("空文字の必須変数は失敗する", () => {
@@ -88,4 +89,55 @@ test("NODE_ENV=test なら検証をスキップする", () => {
 
 test("skipValidation なら欠けていても通る", () => {
   expect(() => createWorkerEnv({}, true)).not.toThrow();
+});
+
+test("GitHub の必須変数を読む", () => {
+  const env = createWorkerEnv(valid);
+  expect(env.GITHUB_PAT).toBe(valid.GITHUB_PAT);
+  expect(env.GITHUB_DEFAULT_REPO).toBe("acme/app");
+  expect(env.GITHUB_PROJECT_ID).toBe("PVT_1");
+  expect(env.GITHUB_DISCUSSION_CATEGORY_ID).toBe("DIC_1");
+  expect(env.GITHUB_DISCUSSION_REPO).toBeUndefined();
+});
+
+test("GITHUB_DISCUSSION_REPO は省略できる", () => {
+  const env = createWorkerEnv({ ...valid, GITHUB_DISCUSSION_REPO: "acme/notes" });
+  expect(env.GITHUB_DISCUSSION_REPO).toBe("acme/notes");
+});
+
+test("GITHUB_PAT が無いと失敗する", () => {
+  expect(() =>
+    createWorkerEnv({
+      REDIS_URL: valid.REDIS_URL,
+      WORKER_SECRET: valid.WORKER_SECRET,
+      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
+      GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
+      GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
+      GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
+    }),
+  ).toThrow("Invalid environment variables");
+});
+
+test("GITHUB_DEFAULT_REPO が owner/repo でないと失敗する", () => {
+  expect(() => createWorkerEnv({ ...valid, GITHUB_DEFAULT_REPO: "acme" })).toThrow(
+    "Invalid environment variables",
+  );
+  expect(() => createWorkerEnv({ ...valid, GITHUB_DEFAULT_REPO: "acme/app/extra" })).toThrow(
+    "Invalid environment variables",
+  );
+});
+
+test("GITHUB_DISCUSSION_REPO が owner/repo でないと失敗する", () => {
+  expect(() => createWorkerEnv({ ...valid, GITHUB_DISCUSSION_REPO: "notes" })).toThrow(
+    "Invalid environment variables",
+  );
+});
+
+test("空文字の GitHub 変数は失敗する", () => {
+  expect(() => createWorkerEnv({ ...valid, GITHUB_PROJECT_ID: "" })).toThrow(
+    "Invalid environment variables",
+  );
+  expect(() => createWorkerEnv({ ...valid, GITHUB_DISCUSSION_CATEGORY_ID: "" })).toThrow(
+    "Invalid environment variables",
+  );
 });

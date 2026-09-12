@@ -184,7 +184,15 @@ flowchart LR
   Agent --> D1
 ```
 
-環境変数（名前は実装時に確定）で `GITHUB_DEFAULT_REPO`・Project id・Discussion 用リポ／カテゴリを渡す。値は完成時点で未定でもよい。
+環境変数でデフォルトを渡す。値は完成時点で未定でもよい。
+
+| 変数 | 内容 |
+|---|---|
+| `GITHUB_PAT` | fine-grained PAT（Secret Manager / `infra/dev/.env`） |
+| `GITHUB_DEFAULT_REPO` | Issue のデフォルト `owner/repo` |
+| `GITHUB_PROJECT_ID` | Project v2 の node id（`PVT_...`） |
+| `GITHUB_DISCUSSION_CATEGORY_ID` | Discussion カテゴリの node id（`DIC_...`） |
+| `GITHUB_DISCUSSION_REPO` | Discussion 用 `owner/repo`。省略時は `GITHUB_DEFAULT_REPO` |
 
 ## 後続: Wiki RAG
 

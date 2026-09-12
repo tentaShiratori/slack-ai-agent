@@ -31,6 +31,11 @@ terraform apply
 | `region` | 既定 `asia-northeast1` |
 | `upstash_redis_primary_region` | 既定 `ap-southeast-1`（Tokyo は Upstash global の候補に無い） |
 | `cursor_api_key` | Cursor API key（Secret Manager → Cloud Run の `CURSOR_API_KEY`） |
+| `github_pat` | fine-grained PAT（Secret Manager → `GITHUB_PAT`）。Issues / Projects / Discussions |
+| `github_default_repo` | Issue のデフォルト `owner/repo` |
+| `github_project_id` | Project v2 の node id（`PVT_...`） |
+| `github_discussion_category_id` | Discussion カテゴリの node id（`DIC_...`） |
+| `github_discussion_repo` | Discussion 用 `owner/repo`。空なら `github_default_repo` |
 | `allow_unauthenticated` | Cloud Run を公開する。既定 false（Tasks SA のみ invoke） |
 | `sentry_dsn` | Worker の Sentry DSN。空なら無効 |
 | `billing_account_id` | 月次予算アラート用の課金アカウント ID |

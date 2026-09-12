@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "./env.ts";
 import { handleRequest } from "./internal/controller/http.ts";
+import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { createSlackPoster } from "./internal/infra/slack/post-message.ts";
 import { replyMentionHelp } from "./internal/usecase/reply-mention-help.ts";
@@ -42,10 +43,12 @@ async function main() {
   log("INFO", "starting worker");
   const store = await connectRedisJobStore(env.REDIS_URL);
   const slack = createSlackPoster(env.SLACK_BOT_TOKEN);
+  const github = createGitHubClient(githubConfigFromEnv(env));
   const deps = {
     expectedSecret: env.WORKER_SECRET,
     accept: {
       store,
+      github,
       process: async ({ job }) => {
         await replyMentionHelp(job, slack);
       },

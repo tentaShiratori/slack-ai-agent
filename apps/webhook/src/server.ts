@@ -1,10 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "./internal/lib/constant/env.ts";
+import { handleRequest } from "./internal/controller/http.ts";
 import { enqueueJob } from "./internal/usecase/enqueue-job.ts";
-import { handleSlackEvent } from "./internal/lib/slack/handle-slack-event.ts";
 import { errorFields, log } from "./internal/lib/metrics/logger.ts";
-import { captureException, initSentry } from "./internal/lib/metrics/sentry.ts";
+import { captureException, flushSentry, initSentry } from "./internal/lib/metrics/sentry.ts";
 
 process.env.SERVICE_NAME ??= env.SERVICE_NAME ?? "webhook";
 initSentry({
@@ -13,16 +12,19 @@ initSentry({
 });
 
 const port = env.PORT;
-const skipSlackVerify = env.SKIP_SLACK_VERIFY === "1";
-const signingSecret = env.SLACK_SIGNING_SECRET ?? "";
 
-function readBody(req: IncomingMessage): Promise<Buffer> {
+function header(req: IncomingMessage, name: string): string | undefined {
+  const value = req.headers[name];
+  return typeof value === "string" ? value : undefined;
+}
+
+function readBody(req: IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
     req.on("data", (chunk) => {
       chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
     });
-    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
   });
 }
@@ -33,59 +35,42 @@ function json(res: ServerResponse, status: number, body: unknown) {
   res.end(payload);
 }
 
-function verifySlackSignature(req: IncomingMessage, rawBody: Buffer): boolean {
-  const timestamp = req.headers["x-slack-request-timestamp"];
-  const signature = req.headers["x-slack-signature"];
-  if (typeof timestamp !== "string" || typeof signature !== "string") {
-    return false;
-  }
-  const ts = Number(timestamp);
-  if (!Number.isFinite(ts) || Math.abs(Date.now() / 1000 - ts) > 60 * 5) {
-    return false;
-  }
-  const [version, hash] = signature.split("=");
-  if (version !== "v0" || !hash) {
-    return false;
-  }
-  const hmac = createHmac("sha256", signingSecret);
-  hmac.update(`${version}:${timestamp}:${rawBody.toString("utf8")}`);
-  const digest = hmac.digest("hex");
-  const a = Buffer.from(hash, "utf8");
-  const b = Buffer.from(digest, "utf8");
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
-async function handleEvents(req: IncomingMessage, res: ServerResponse) {
-  const rawBody = await readBody(req);
-  if (!skipSlackVerify && !verifySlackSignature(req, rawBody)) {
-    json(res, 403, { error: "forbidden" });
-    return;
-  }
-
-  const result = await handleSlackEvent(rawBody.toString("utf8"), enqueueJob);
-  json(res, result.status, result.body);
-}
-
 const server = createServer(async (req, res) => {
-  const url = req.url ?? "/";
-  if (req.method === "GET" && (url === "/health" || url === "/")) {
-    json(res, 200, { ok: true, role: "webhook" });
-    return;
-  }
-  if (req.method === "POST" && url.startsWith("/api/slack/events")) {
-    try {
-      await handleEvents(req, res);
-    } catch (error) {
-      captureException(error);
-      log("ERROR", "unhandled request error", errorFields(error));
-      if (!res.headersSent) {
-        json(res, 500, { error: "internal" });
-      }
+  try {
+    const rawBody = req.method === "POST" ? await readBody(req) : "";
+    const result = await handleRequest(
+      {
+        method: req.method ?? "GET",
+        url: req.url ?? "/",
+        rawBody,
+        contentType: header(req, "content-type"),
+        slackTimestamp: header(req, "x-slack-request-timestamp"),
+        slackSignature: header(req, "x-slack-signature"),
+      },
+      {
+        signingSecret: env.SLACK_SIGNING_SECRET ?? "",
+        skipVerify: env.SKIP_SLACK_VERIFY === "1",
+        enqueue: enqueueJob,
+      },
+    );
+    json(res, result.status, result.body);
+  } catch (error) {
+    captureException(error);
+    log("ERROR", "unhandled request error", errorFields(error));
+    if (!res.headersSent) {
+      json(res, 500, { error: "internal" });
     }
-    return;
   }
-  json(res, 404, { error: "not_found" });
 });
+
+const shutdown = () => {
+  server.close(async () => {
+    await flushSentry();
+    process.exit(0);
+  });
+};
+process.on("SIGTERM", shutdown);
+process.on("SIGINT", shutdown);
 
 server.listen(port, "0.0.0.0", () => {
   log("INFO", "webhook listening", { port });

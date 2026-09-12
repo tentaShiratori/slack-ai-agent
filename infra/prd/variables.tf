@@ -80,6 +80,33 @@ variable "allow_unauthenticated" {
   description = "Allow public Cloud Run invoke. Production uses Cloud Tasks OIDC; keep false unless debugging"
 }
 
+variable "github_pat" {
+  type        = string
+  sensitive   = true
+  description = "Fine-grained PAT for Issues, Projects, and Discussions"
+}
+
+variable "github_default_repo" {
+  type        = string
+  description = "Default owner/repo for Issues"
+}
+
+variable "github_project_id" {
+  type        = string
+  description = "GitHub Project v2 node id (PVT_...)"
+}
+
+variable "github_discussion_category_id" {
+  type        = string
+  description = "Discussion category node id (DIC_...)"
+}
+
+variable "github_discussion_repo" {
+  type        = string
+  default     = ""
+  description = "owner/repo for Discussions. Empty uses github_default_repo"
+}
+
 variable "sentry_dsn" {
   type        = string
   sensitive   = true
