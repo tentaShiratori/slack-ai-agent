@@ -4,11 +4,11 @@ import { createWorkerEnv, shouldSkipEnvValidation } from "./create-env.ts";
 const valid = {
   REDIS_URL: "redis://127.0.0.1:6379",
   WORKER_SECRET: "dev-secret",
+  SLACK_BOT_TOKEN: "xoxb-dev",
   GITHUB_PAT: "github_pat_dev",
   GITHUB_DEFAULT_REPO: "acme/app",
   GITHUB_PROJECT_ID: "PVT_1",
   GITHUB_DISCUSSION_CATEGORY_ID: "DIC_1",
-  SLACK_BOT_TOKEN: "xoxb-dev",
   CURSOR_API_KEY: "cursor-dev",
 };
 
@@ -16,6 +16,7 @@ test("必須変数があれば通る", () => {
   const env = createWorkerEnv(valid);
   expect(env.REDIS_URL).toBe(valid.REDIS_URL);
   expect(env.WORKER_SECRET).toBe(valid.WORKER_SECRET);
+  expect(env.SLACK_BOT_TOKEN).toBe(valid.SLACK_BOT_TOKEN);
   expect(env.PORT).toBe(8080);
 });
 
@@ -30,15 +31,18 @@ test("PORT が 0 以下だと失敗する", () => {
 });
 
 test("REDIS_URL が無いと失敗する", () => {
-  expect(() => createWorkerEnv({ WORKER_SECRET: "dev-secret" })).toThrow(
-    "Invalid environment variables",
-  );
+  const { REDIS_URL: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });
 
 test("WORKER_SECRET が無いと失敗する", () => {
-  expect(() => createWorkerEnv({ REDIS_URL: valid.REDIS_URL })).toThrow(
-    "Invalid environment variables",
-  );
+  const { WORKER_SECRET: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
+});
+
+test("SLACK_BOT_TOKEN が無いと失敗する", () => {
+  const { SLACK_BOT_TOKEN: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });
 
 test("空文字の必須変数は失敗する", () => {
@@ -46,6 +50,9 @@ test("空文字の必須変数は失敗する", () => {
     "Invalid environment variables",
   );
   expect(() => createWorkerEnv({ ...valid, REDIS_URL: "" })).toThrow(
+    "Invalid environment variables",
+  );
+  expect(() => createWorkerEnv({ ...valid, SLACK_BOT_TOKEN: "" })).toThrow(
     "Invalid environment variables",
   );
 });
@@ -104,10 +111,10 @@ test("GITHUB_PAT が無いと失敗する", () => {
     createWorkerEnv({
       REDIS_URL: valid.REDIS_URL,
       WORKER_SECRET: valid.WORKER_SECRET,
+      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
       GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
       GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
       GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
-      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
       CURSOR_API_KEY: valid.CURSOR_API_KEY,
     }),
   ).toThrow("Invalid environment variables");
@@ -141,20 +148,6 @@ test("Slack と Cursor の必須変数を読む", () => {
   const env = createWorkerEnv(valid);
   expect(env.SLACK_BOT_TOKEN).toBe("xoxb-dev");
   expect(env.CURSOR_API_KEY).toBe("cursor-dev");
-});
-
-test("SLACK_BOT_TOKEN が無いと失敗する", () => {
-  expect(() =>
-    createWorkerEnv({
-      REDIS_URL: valid.REDIS_URL,
-      WORKER_SECRET: valid.WORKER_SECRET,
-      GITHUB_PAT: valid.GITHUB_PAT,
-      GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
-      GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
-      GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
-      CURSOR_API_KEY: valid.CURSOR_API_KEY,
-    }),
-  ).toThrow("Invalid environment variables");
 });
 
 test("CURSOR_API_KEY が無いと失敗する", () => {
