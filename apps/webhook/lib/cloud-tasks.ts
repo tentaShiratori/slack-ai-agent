@@ -151,7 +151,9 @@ export function createRestTasksClient(
         throw error;
       }
       if (!response.ok) {
-        throw new Error(`Cloud Tasks createTask failed: ${response.status} ${await response.text()}`);
+        throw new Error(
+          `Cloud Tasks createTask failed: ${response.status} ${await response.text()}`,
+        );
       }
     },
   };

@@ -23,11 +23,12 @@ const tasksEnv = {
 };
 
 function fakeTasksClient() {
-  const createTask = vi.fn<(request: Parameters<TasksClientLike["createTask"]>[0]) => Promise<unknown>>(
-    async () => ({}),
-  );
+  const createTask = vi.fn<
+    (request: Parameters<TasksClientLike["createTask"]>[0]) => Promise<unknown>
+  >(async () => ({}));
   const client: TasksClientLike = {
-    queuePath: (project, location, queue) => `projects/${project}/locations/${location}/queues/${queue}`,
+    queuePath: (project, location, queue) =>
+      `projects/${project}/locations/${location}/queues/${queue}`,
     createTask,
   };
   return { client, createTask };
@@ -62,7 +63,9 @@ test("Cloud Tasks は POST /jobs を積んで完了を待たない", async () =>
 
   expect(createTask).toHaveBeenCalledTimes(1);
   const request = createTask.mock.calls[0]?.[0];
-  expect(request?.parent).toBe("projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs");
+  expect(request?.parent).toBe(
+    "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs",
+  );
   expect(request?.task.name).toBe(
     "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs/tasks/Ev1",
   );
@@ -134,7 +137,10 @@ test("REST クライアントは Tasks API に base64 body を送る", async () 
         url: "https://worker.example.run.app/jobs",
         headers: { "x-worker-secret": "secret" },
         body: Buffer.from(rawBody),
-        oidcToken: { serviceAccountEmail: "tasks@proj.iam", audience: "https://worker.example.run.app" },
+        oidcToken: {
+          serviceAccountEmail: "tasks@proj.iam",
+          audience: "https://worker.example.run.app",
+        },
       },
       dispatchDeadline: { seconds: 1800 },
     },

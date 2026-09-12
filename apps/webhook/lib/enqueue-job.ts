@@ -19,7 +19,10 @@ export type DispatcherDeps = {
   getAccessToken?: () => Promise<string>;
 };
 
-function jwtAccessToken(credentials: { client_email: string; private_key: string }): () => Promise<string> {
+function jwtAccessToken(credentials: {
+  client_email: string;
+  private_key: string;
+}): () => Promise<string> {
   const jwt = new JWT({
     email: credentials.client_email,
     key: credentials.private_key,
@@ -43,7 +46,10 @@ export function createJobDispatcher(
     const config = cloudTasksConfigFromEnv(env);
     const client =
       deps.tasksClient ??
-      createRestTasksClient(deps.getAccessToken ?? jwtAccessToken(config.credentials), deps.fetchFn ?? fetch);
+      createRestTasksClient(
+        deps.getAccessToken ?? jwtAccessToken(config.credentials),
+        deps.fetchFn ?? fetch,
+      );
     return createCloudTasksDispatcher(config, client);
   }
   if (missingTasksOnly.length < tasksOnlyKeys.length) {

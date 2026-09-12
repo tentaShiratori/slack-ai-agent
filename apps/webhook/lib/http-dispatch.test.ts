@@ -31,6 +31,9 @@ test("HTTP dispatch の失敗は未処理にしない", async () => {
   const fetchFn = vi.fn<typeof fetch>(async () => {
     throw new Error("econnrefused");
   });
-  const enqueue = createHttpDispatcher({ workerUrl: "http://127.0.0.1:8080", workerSecret: "" }, fetchFn);
+  const enqueue = createHttpDispatcher(
+    { workerUrl: "http://127.0.0.1:8080", workerSecret: "" },
+    fetchFn,
+  );
   await expect(enqueue("{}")).resolves.toBeUndefined();
 });

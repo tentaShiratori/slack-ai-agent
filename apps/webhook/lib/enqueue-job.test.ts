@@ -20,11 +20,12 @@ const tasksEnv = {
 };
 
 function fakeTasksClient() {
-  const createTask = vi.fn<(request: Parameters<TasksClientLike["createTask"]>[0]) => Promise<unknown>>(
-    async () => ({}),
-  );
+  const createTask = vi.fn<
+    (request: Parameters<TasksClientLike["createTask"]>[0]) => Promise<unknown>
+  >(async () => ({}));
   const client: TasksClientLike = {
-    queuePath: (project, location, queue) => `projects/${project}/locations/${location}/queues/${queue}`,
+    queuePath: (project, location, queue) =>
+      `projects/${project}/locations/${location}/queues/${queue}`,
     createTask,
   };
   return { client, createTask };
@@ -38,18 +39,18 @@ test("環境が揃えば Cloud Tasks を使う", async () => {
 });
 
 test("Tasks の一部だけあるときは落とす", () => {
-  expect(() => createJobDispatcher({ GCP_PROJECT_ID: "proj", WORKER_URL: "http://localhost:8080" })).toThrow(
-    /Cloud Tasks config missing/,
-  );
+  expect(() =>
+    createJobDispatcher({ GCP_PROJECT_ID: "proj", WORKER_URL: "http://localhost:8080" }),
+  ).toThrow(/Cloud Tasks config missing/);
 });
 
 test("Vercel 本番では Tasks 設定が必須", () => {
   expect(() =>
     createJobDispatcher({ VERCEL_ENV: "production", WORKER_URL: "https://worker.example.run.app" }),
   ).toThrow("Cloud Tasks config is required on Vercel");
-  expect(() => createJobDispatcher({ VERCEL_ENV: "preview", WORKER_URL: "https://worker.example.run.app" })).toThrow(
-    "Cloud Tasks config is required on Vercel",
-  );
+  expect(() =>
+    createJobDispatcher({ VERCEL_ENV: "preview", WORKER_URL: "https://worker.example.run.app" }),
+  ).toThrow("Cloud Tasks config is required on Vercel");
 });
 
 test("mise の WORKER_URL だけでは HTTP にする", async () => {

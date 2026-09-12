@@ -3,7 +3,10 @@ import { handleSlackEvent } from "./handle-slack-event.ts";
 
 test("url_verification は enqueue せず challenge を返す", async () => {
   const enqueue = vi.fn<(rawBody: string) => Promise<void>>(async () => undefined);
-  const result = await handleSlackEvent(JSON.stringify({ type: "url_verification", challenge: "abc" }), enqueue);
+  const result = await handleSlackEvent(
+    JSON.stringify({ type: "url_verification", challenge: "abc" }),
+    enqueue,
+  );
   expect(result).toEqual({ status: 200, body: { challenge: "abc" } });
   expect(enqueue).not.toHaveBeenCalled();
 });
@@ -28,7 +31,11 @@ test("イベントは enqueue を待ってから ack する", async () => {
     order.push("enqueue-done");
   });
   const pending = handleSlackEvent(
-    JSON.stringify({ type: "event_callback", event_id: "evt-1", event: { channel: "C1", ts: "1.0" } }),
+    JSON.stringify({
+      type: "event_callback",
+      event_id: "evt-1",
+      event: { channel: "C1", ts: "1.0" },
+    }),
     enqueue,
   );
   await vi.waitFor(() => {
@@ -43,5 +50,7 @@ test("enqueue 失敗は呼び出し元へ投げる", async () => {
   const enqueue = vi.fn<(rawBody: string) => Promise<void>>(async () => {
     throw new Error("tasks down");
   });
-  await expect(handleSlackEvent(JSON.stringify({ type: "event_callback" }), enqueue)).rejects.toThrow("tasks down");
+  await expect(
+    handleSlackEvent(JSON.stringify({ type: "event_callback" }), enqueue),
+  ).rejects.toThrow("tasks down");
 });
