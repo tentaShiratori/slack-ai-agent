@@ -1,7 +1,11 @@
+import { parseSlashReport, slashReplyThreadTs, type SlashReport } from "./parse-slash-report.ts";
+
 export type Job = {
   eventId: string;
   channelId: string;
   threadTs: string;
+  replyThreadTs?: string;
+  report?: SlashReport;
 };
 
 export class JobParseError extends Error {
@@ -49,5 +53,13 @@ export function parseJob(body: unknown): Job {
     throw new JobParseError("invalid_job");
   }
 
-  return { eventId, channelId, threadTs };
+  const report = parseSlashReport(record);
+  const replyThreadTs = report ? slashReplyThreadTs(record) : undefined;
+  return {
+    eventId,
+    channelId,
+    threadTs,
+    ...(replyThreadTs ? { replyThreadTs } : {}),
+    ...(report ? { report } : {}),
+  };
 }

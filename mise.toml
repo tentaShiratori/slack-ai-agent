@@ -21,6 +21,8 @@ GITHUB_PAT = "dev-github-pat"
 GITHUB_DEFAULT_REPO = "example/repo"
 GITHUB_PROJECT_ID = "PVT_dev"
 GITHUB_DISCUSSION_CATEGORY_ID = "DIC_dev"
+SLACK_BOT_TOKEN = "xoxb-dev"
+CURSOR_API_KEY = "cursor-dev"
 
 [vars]
 gcp_region = "asia-northeast1"

@@ -30,6 +30,20 @@ function isBotEvent(event: Record<string, unknown>): boolean {
   return asNonEmptyString(event.bot_id) !== undefined || event.subtype === "bot_message";
 }
 
+const reportCommands = new Set(["/feature", "/refactor", "/nfr"]);
+const emptyReportSlashAck = {
+  response_type: "ephemeral",
+  text: "指示文を付けてください",
+};
+
+function isEmptyReportSlash(payload: Record<string, unknown>): boolean {
+  const command = asNonEmptyString(payload.command);
+  if (!command || !reportCommands.has(command)) {
+    return false;
+  }
+  return typeof payload.text !== "string" || payload.text.trim() === "";
+}
+
 function shouldEnqueue(payload: unknown): payload is Record<string, unknown> {
   if (!isRecord(payload)) {
     return false;
@@ -121,6 +135,10 @@ export async function receiveSlack(
 
   if (isRecord(payload) && payload.type === "url_verification") {
     return { status: 200, body: { challenge: payload.challenge } };
+  }
+
+  if (isRecord(payload) && isEmptyReportSlash(payload)) {
+    return { status: 200, body: emptyReportSlashAck };
   }
 
   if (shouldEnqueue(payload)) {

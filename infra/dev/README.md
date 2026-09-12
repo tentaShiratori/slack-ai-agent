@@ -44,4 +44,4 @@ curl.exe -s http://localhost:3000/api/slack/interactive `
   -d "payload={""type"":""view_submission"",""trigger_id"":""trig-2""}"
 ```
 
-Cursor SDK・slash／GitHub 連携は未実装またはスタブ。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。
+`/feature` `/refactor` `/nfr` は Worker 上の Cursor SDK で整理し、Issue を作って Project に載せる。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。
