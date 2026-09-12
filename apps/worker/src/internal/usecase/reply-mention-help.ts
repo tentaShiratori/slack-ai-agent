@@ -1,6 +1,6 @@
 import type { Job } from "../parse-job.ts";
 
-export const slashHelpText = [
+const slashHelpText = [
   "使えるコマンド:",
   "• `/bug` — モーダルから不具合を Issue にし、Project に載せます",
   "• `/feature` `/refactor` `/nfr` — 指示文から Issue にし、Project に載せます",
@@ -13,7 +13,7 @@ export type SlackPoster = {
   postMessage: (args: { channelId: string; threadTs: string; text: string }) => Promise<void>;
 };
 
-export function shouldReplyMentionHelp(job: Job): boolean {
+function shouldReplyMentionHelp(job: Job): boolean {
   if (job.eventType !== "app_mention") {
     return false;
   }

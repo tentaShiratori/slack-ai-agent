@@ -1,5 +1,5 @@
 import { expect, test, vi } from "vitest";
-import { createSlackPoster, SlackPostError } from "./post-message.ts";
+import { createSlackPoster } from "./post-message.ts";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -42,7 +42,7 @@ test("HTTP エラーは SlackPostError", async () => {
   const slack = createSlackPoster("xoxb-dev", fetchFn);
   await expect(
     slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" }),
-  ).rejects.toBeInstanceOf(SlackPostError);
+  ).rejects.toMatchObject({ name: "SlackPostError", message: "slack_post_failed" });
 });
 
 test("JSON でない応答は SlackPostError", async () => {
@@ -58,5 +58,5 @@ test("配列の JSON は SlackPostError", async () => {
   const slack = createSlackPoster("xoxb-dev", fetchFn);
   await expect(
     slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" }),
-  ).rejects.toBeInstanceOf(SlackPostError);
+  ).rejects.toMatchObject({ name: "SlackPostError" });
 });

@@ -1,4 +1,4 @@
-export class SlackPostError extends Error {
+class SlackPostError extends Error {
   constructor(message = "slack_post_failed") {
     super(message);
     this.name = "SlackPostError";
