@@ -4,6 +4,12 @@ upstash_api_key = "upstash-management-api-key"
 
 cursor_api_key  = "cursor_..."
 slack_bot_token = "xoxb-..."
+github_pat      = "github_pat_..."
+
+github_default_repo              = "owner/repo"
+github_project_id                = "PVT_..."
+github_discussion_category_id    = "DIC_..."
+# github_discussion_repo         = "owner/other"
 
 billing_account_id = "XXXXXX-XXXXXX-XXXXXX"
 alert_email        = "you@example.com"

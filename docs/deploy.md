@@ -13,6 +13,7 @@
 - [Vercel](https://vercel.com/) アカウント（Hobby で可）
 - [Upstash Management API key](https://console.upstash.com/account/api)
 - Slack アプリの Bot Token（`xoxb-...`）と Signing Secret
+- GitHub fine-grained PAT（対象リポの Issues / Discussions、Project の read/write）
 - Cursor API key（[Dashboard → Integrations](https://cursor.com/dashboard/integrations)）
 - [Sentry](https://sentry.io/) の Node プロジェクト（Developer 無料枠で可）と DSN
 - GCP 課金アカウント ID と、予算アラートのメールアドレス
@@ -82,7 +83,7 @@ cd infra/prd
 copy terraform.tfvars.example terraform.tfvars
 ```
 
-`terraform.tfvars` に `project_id`、Upstash、`cursor_api_key`、`slack_bot_token`、`billing_account_id`、`alert_email`、`sentry_dsn` を入れる。ファイルは git 対象外。課金アカウント ID は [Billing accounts](https://console.cloud.google.com/billing) で確認可能。通貨が USD でないときは `budget_currency` を合わせる。
+`terraform.tfvars` に `project_id`、Upstash、`cursor_api_key`、`slack_bot_token`、`github_pat`、`github_default_repo`、`github_project_id`、`github_discussion_category_id`、`billing_account_id`、`alert_email`、`sentry_dsn` を入れる。ファイルは git 対象外。課金アカウント ID は [Billing accounts](https://console.cloud.google.com/billing) で確認可能。通貨が USD でないときは `budget_currency` を合わせる。
 
 ```powershell
 mise run infra-init

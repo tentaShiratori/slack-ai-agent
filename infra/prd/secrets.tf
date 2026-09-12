@@ -9,6 +9,7 @@ locals {
       worker-secret             = random_password.worker_secret.result
       cursor-api-key            = var.cursor_api_key
       slack-bot-token           = var.slack_bot_token
+      github-pat                = var.github_pat
       redis-url                 = local.redis_url
       upstash-redis-rest-url    = local.upstash_redis_rest_url
       upstash-redis-rest-token  = upstash_redis_database.session.rest_token
