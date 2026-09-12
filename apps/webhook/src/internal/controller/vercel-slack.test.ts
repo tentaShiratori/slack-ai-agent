@@ -23,7 +23,9 @@ vi.mock("../usecase/enqueue-job.ts", () => ({
 }));
 
 const sentry = await import("../lib/metrics/sentry.ts");
-const { readRawBody, slackVercelHandler } = await import("./vercel-slack.ts");
+const { slackVercelHandler } = await import("./vercel-slack.ts");
+
+const challengeBody = JSON.stringify({ type: "url_verification", challenge: "abc" });
 
 function mockRes(headersSent = false) {
   return {
@@ -36,39 +38,63 @@ function mockRes(headersSent = false) {
   };
 }
 
+function eventsReq(extra: Partial<VercelRequest> & object): VercelRequest {
+  return {
+    method: "POST",
+    url: "/api/slack/events",
+    headers: { "content-type": "application/json" },
+    ...extra,
+  } as VercelRequest;
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
 test("string body を raw として読む", async () => {
-  expect(await readRawBody({ body: '{"ok":true}' } as VercelRequest)).toBe('{"ok":true}');
+  const res = mockRes();
+  await slackVercelHandler(eventsReq({ body: challengeBody }), res);
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(res.json).toHaveBeenCalledWith({ challenge: "abc" });
 });
 
 test("Buffer body を raw として読む", async () => {
-  expect(await readRawBody({ body: Buffer.from("abc") } as VercelRequest)).toBe("abc");
+  const res = mockRes();
+  await slackVercelHandler(eventsReq({ body: Buffer.from(challengeBody) }), res);
+  expect(res.json).toHaveBeenCalledWith({ challenge: "abc" });
 });
 
 test("stream の chunk を結合する", async () => {
-  const req = Readable.from(["hel", Buffer.from("lo")]) as unknown as VercelRequest;
-  expect(await readRawBody(req)).toBe("hello");
+  const res = mockRes();
+  const req = Readable.from([
+    challengeBody.slice(0, 8),
+    challengeBody.slice(8),
+  ]) as unknown as VercelRequest;
+  Object.assign(req, {
+    method: "POST",
+    url: "/api/slack/events",
+    headers: { "content-type": "application/json" },
+  });
+  await slackVercelHandler(req, res);
+  expect(res.json).toHaveBeenCalledWith({ challenge: "abc" });
 });
 
-test("空 stream は空文字", async () => {
+test("空 stream は 400", async () => {
+  const res = mockRes();
   const req = Readable.from([]) as unknown as VercelRequest;
-  expect(await readRawBody(req)).toBe("");
+  Object.assign(req, {
+    method: "POST",
+    url: "/api/slack/events",
+    headers: { "content-type": "application/json" },
+  });
+  await slackVercelHandler(req, res);
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(res.json).toHaveBeenCalledWith({ error: "invalid_json" });
 });
 
 test("url_verification を JSON で返す", async () => {
   const res = mockRes();
-  await slackVercelHandler(
-    {
-      method: "POST",
-      url: "/api/slack/events",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ type: "url_verification", challenge: "abc" }),
-    } as VercelRequest,
-    res,
-  );
+  await slackVercelHandler(eventsReq({ body: challengeBody }), res);
   expect(res.status).toHaveBeenCalledWith(200);
   expect(res.json).toHaveBeenCalledWith({ challenge: "abc" });
   expect(sentry.captureException).not.toHaveBeenCalled();
@@ -77,15 +103,12 @@ test("url_verification を JSON で返す", async () => {
 test("読み取り失敗は Sentry に送り 500", async () => {
   const res = mockRes();
   await slackVercelHandler(
-    {
-      method: "POST",
-      url: "/api/slack/events",
-      headers: {},
+    eventsReq({
       async *[Symbol.asyncIterator]() {
         yield "";
         throw new Error("read fail");
       },
-    } as VercelRequest,
+    }),
     res,
   );
   expect(sentry.captureException).toHaveBeenCalled();
@@ -97,15 +120,12 @@ test("読み取り失敗は Sentry に送り 500", async () => {
 test("ヘッダ送信済みなら 500 を書かない", async () => {
   const res = mockRes(true);
   await slackVercelHandler(
-    {
-      method: "POST",
-      url: "/api/slack/events",
-      headers: {},
+    eventsReq({
       async *[Symbol.asyncIterator]() {
         yield "";
         throw new Error("after write");
       },
-    } as VercelRequest,
+    }),
     res,
   );
   expect(sentry.captureException).toHaveBeenCalled();

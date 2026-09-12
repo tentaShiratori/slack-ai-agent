@@ -10,7 +10,7 @@ function mediaTypeOf(contentType: string | undefined): string {
   return contentType?.split(";")[0]?.trim().toLowerCase() ?? "";
 }
 
-export function parseSlackBody(rawBody: string, contentType?: string): unknown {
+function parseSlackBody(rawBody: string, contentType?: string): unknown {
   if (mediaTypeOf(contentType) === "application/x-www-form-urlencoded") {
     const params = new URLSearchParams(rawBody);
     const payload = params.get("payload");

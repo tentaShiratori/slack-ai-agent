@@ -16,7 +16,7 @@ function header(req: VercelRequest, name: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-export async function readRawBody(req: VercelRequest): Promise<string> {
+async function readRawBody(req: VercelRequest): Promise<string> {
   if (typeof req.body === "string") {
     return req.body;
   }
