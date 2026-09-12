@@ -13,7 +13,9 @@
   },
   "dependencies": {
     "@sentry/node": "^10.74.0",
-    "redis": "^6.2.1"
+    "@t3-oss/env-core": "^0.13.11",
+    "redis": "^6.2.1",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@types/node": "^26.5.0",

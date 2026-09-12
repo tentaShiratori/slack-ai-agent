@@ -58,3 +58,4 @@ mise run dev
 - パッケージマネージャは **pnpm**（Bun ではない）
 - タスクは GitHub Issue ベース。進行中は `In Progress` ラベル
 - ブランチ: `{feat|fix|chore}/{issue番号}-{slug}`
+- CI（GitHub Actions）で `fmt:check` / `lint` / webhook・worker のテストを回す

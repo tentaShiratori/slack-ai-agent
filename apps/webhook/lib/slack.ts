@@ -2,12 +2,13 @@ import { createHmac } from "crypto";
 import pkg from "@slack/bolt";
 import { VercelRequest } from "@vercel/node";
 import tsscmp from "tsscmp";
+import { env } from "./env.js";
 
 const { App } = pkg;
 
 export const slack = new App({
-  token: process.env.SLACK_BOT_TOKEN,
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
+  token: env.SLACK_BOT_TOKEN,
+  signingSecret: env.SLACK_SIGNING_SECRET,
 });
 
 // ------------------------------
@@ -58,7 +59,7 @@ export function verifySlackRequest(req: VercelRequest): void {
     throw new Error(`${verifyErrorPrefix}: unknown signature version`);
   }
   // Compute our own signature hash
-  const hmac = createHmac("sha256", process.env.SLACK_SIGNING_SECRET ?? "");
+  const hmac = createHmac("sha256", env.SLACK_SIGNING_SECRET ?? "");
 
   // We should detect the body have "toString" because the body parsed by vercel is mede by Object.create(null) or regular object.
   // the original shape of the body have "toString" is JSON.

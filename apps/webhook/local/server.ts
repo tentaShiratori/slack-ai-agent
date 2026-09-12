@@ -1,16 +1,20 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { env } from "../lib/env.ts";
 import { errorFields, log } from "../lib/logger.ts";
 import { captureException, initSentry } from "../lib/sentry.ts";
 
-process.env.SERVICE_NAME ??= "webhook";
-initSentry();
+process.env.SERVICE_NAME ??= env.SERVICE_NAME ?? "webhook";
+initSentry({
+  dsn: env.SENTRY_DSN,
+  environment: env.SENTRY_ENVIRONMENT ?? env.VERCEL_ENV ?? env.NODE_ENV,
+});
 
-const port = Number(process.env.PORT ?? 3000);
-const workerUrl = process.env.WORKER_URL ?? "http://127.0.0.1:8080";
-const workerSecret = process.env.WORKER_SECRET ?? "";
-const skipSlackVerify = process.env.SKIP_SLACK_VERIFY === "1";
-const signingSecret = process.env.SLACK_SIGNING_SECRET ?? "";
+const port = env.PORT;
+const workerUrl = env.WORKER_URL;
+const workerSecret = env.WORKER_SECRET;
+const skipSlackVerify = env.SKIP_SLACK_VERIFY === "1";
+const signingSecret = env.SLACK_SIGNING_SECRET ?? "";
 
 function readBody(req: IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
