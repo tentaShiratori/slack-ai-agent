@@ -76,8 +76,8 @@ variable "worker_max_instances" {
 
 variable "allow_unauthenticated" {
   type        = bool
-  default     = true
-  description = "Allow public Cloud Run invoke. Vercel authenticates with WORKER_SECRET"
+  default     = false
+  description = "Allow public Cloud Run invoke. Production uses Cloud Tasks OIDC; keep false unless debugging"
 }
 
 variable "sentry_dsn" {

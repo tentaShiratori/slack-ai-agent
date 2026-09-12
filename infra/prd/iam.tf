@@ -12,6 +12,22 @@ resource "google_service_account" "worker" {
   display_name = "Slack AI Agent Cloud Run worker"
 }
 
+resource "google_service_account" "tasks_invoker" {
+  account_id   = "slack-ai-tasks"
+  display_name = "Cloud Tasks invoker for Cloud Run worker"
+}
+
+resource "google_service_account" "webhook_enqueuer" {
+  account_id   = "slack-ai-enqueue"
+  display_name = "Vercel webhook Cloud Tasks enqueuer"
+}
+
+resource "google_service_account_iam_member" "enqueuer_act_as_invoker" {
+  service_account_id = google_service_account.tasks_invoker.name
+  role               = "roles/iam.serviceAccountUser"
+  member             = "serviceAccount:${google_service_account.webhook_enqueuer.email}"
+}
+
 resource "google_secret_manager_secret_iam_member" "worker" {
   for_each = google_secret_manager_secret.this
 

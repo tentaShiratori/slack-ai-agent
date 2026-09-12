@@ -2,8 +2,8 @@
   // This file is JSONC: fallow reads these comments; generic JSON tools may not.
   "$schema": "./node_modules/fallow/schema.json",
   "entry": [
-    "apps/webhook/api/*.ts",
-    "apps/webhook/local/server.ts",
+    "apps/webhook/api/**/*.ts",
+    "apps/webhook/src/server.ts",
     "apps/worker/src/server.ts"
   ],
   "workspaces": {

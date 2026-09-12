@@ -1,6 +1,6 @@
 # 本番 Terraform
 
-Vercel 上の webhook 以外（Cloud Run / Secret Manager / Artifact Registry / Upstash Redis / Upstash Vector / 予算アラート）を作る。VPC は使わない。
+Vercel 上の webhook 以外（Cloud Run / Cloud Tasks / Secret Manager / Artifact Registry / Upstash Redis / Upstash Vector / 予算アラート）を作る。VPC は使わない。
 
 ## 手順
 
@@ -18,10 +18,10 @@ terraform apply
 
 または `mise run prd-plan`。
 
-5. 出力の `worker_url` と `worker_secret_id` を Vercel の `WORKER_URL` / `WORKER_SECRET` に設定する
+5. 出力の `worker_url`、`worker_secret_id`、Cloud Tasks 関連、`webhook_enqueuer_key_secret_id` を Vercel に設定する（[docs/deploy.md](../../docs/deploy.md)）
 6. Worker イメージを Artifact Registry に push し、`worker_image` を更新して再 apply する
 
-最初の apply では Cloud Run は hello サンプルイメージになる。アプリの認証（`WORKER_SECRET`）は Secret Manager 経由で入る。
+最初の apply では Cloud Run は hello サンプルイメージになる。アプリの認証（`WORKER_SECRET`）は Secret Manager 経由で入る。Cloud Run の invoke は Cloud Tasks 用 SA（`slack-ai-tasks`）に限る。`allow_unauthenticated` は既定 false。
 
 ## 変数
 
@@ -31,7 +31,7 @@ terraform apply
 | `region` | 既定 `asia-northeast1` |
 | `upstash_redis_primary_region` | 既定 `ap-southeast-1`（Tokyo は Upstash global の候補に無い） |
 | `cursor_api_key` | Cursor API key（Secret Manager → Cloud Run の `CURSOR_API_KEY`） |
-| `allow_unauthenticated` | Vercel から叩くため既定 true。実体の認証は `WORKER_SECRET` |
+| `allow_unauthenticated` | Cloud Run を公開する。既定 false（Tasks SA のみ invoke） |
 | `sentry_dsn` | Worker の Sentry DSN。空なら無効 |
 | `billing_account_id` | 月次予算アラート用の課金アカウント ID |
 | `alert_email` | 予算アラートの送信先 |

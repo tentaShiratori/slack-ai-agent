@@ -17,10 +17,11 @@ wiki 質問応答・チャンネルごとのリポ切替は後続。
 
 ## 構成（要約）
 
-- **Vercel Hobby**: Slack の署名検証と 3 秒 ack
+- **Vercel Hobby**: Slack の署名検証と 3 秒 ack。ack 前に Cloud Tasks へ enqueue
+- **Cloud Tasks**: Cloud Run の `POST /jobs` を開き続ける
 - **Cloud Run**: Cursor SDK、GitHub API、Slack 返信
 - **Upstash Redis**: session / lock / 重複排除
-- **Secret Manager**: Cursor・Slack・GitHub PAT・Worker 秘密
+- **Secret Manager**: Cursor・Slack・GitHub PAT・Worker 秘密・enqueue 用 SA キー
 
 詳細図とシーケンスは [docs/architecture.md](docs/architecture.md)。デプロイ準備は [docs/deploy.md](docs/deploy.md)。
 

@@ -90,30 +90,44 @@ mise run infra-plan
 terraform -chdir=infra/prd apply
 ```
 
-最初の apply では Cloud Run のイメージは hello サンプルになる。アプリの認証（`WORKER_SECRET`）は Secret Manager に入る。
+最初の apply では Cloud Run のイメージは hello サンプルになる。アプリの認証（`WORKER_SECRET`）は Secret Manager に入る。Cloud Tasks のキューと enqueue / invoke 用 SA もこの apply で作る。
 
 ## 5. Terraform 出力を Vercel に渡す
 
 ```powershell
 terraform -chdir=infra/prd output worker_url
 terraform -chdir=infra/prd output worker_secret_id
+terraform -chdir=infra/prd output cloud_tasks_queue
+terraform -chdir=infra/prd output cloud_tasks_location
+terraform -chdir=infra/prd output cloud_tasks_invoker_sa
+terraform -chdir=infra/prd output webhook_enqueuer_key_secret_id
 ```
 
 秘密の値は:
 
 ```powershell
 gcloud secrets versions access latest --secret=WORKER_SECRET_ID
+gcloud secrets versions access latest --secret=WEBHOOK_ENQUEUER_KEY_SECRET_ID
 ```
+
+enqueue 用キーは JSON 1 行。Vercel の `GCP_TASKS_SA_KEY` にそのまま入れる。
 
 `apps/webhook` の Vercel プロジェクトに、Production の Environment Variables を設定する。
 
-| 変数                   | 値                                 |
-| ---------------------- | ---------------------------------- |
-| `WORKER_URL`           | `worker_url` の出力                |
-| `WORKER_SECRET`        | Secret Manager の `worker-secret`  |
-| `SLACK_BOT_TOKEN`      | Slack Bot Token                    |
-| `SLACK_SIGNING_SECRET` | Slack Signing Secret               |
-| `SENTRY_DSN`           | Sentry DSN（未設定なら捕捉しない） |
+| 変数                     | 値                                           |
+| ------------------------ | -------------------------------------------- |
+| `WORKER_URL`             | `worker_url` の出力（Tasks の HTTP 先）      |
+| `WORKER_SECRET`          | Secret Manager の `worker-secret`            |
+| `GCP_PROJECT_ID`         | GCP プロジェクト ID                          |
+| `CLOUD_TASKS_LOCATION`   | `cloud_tasks_location`                       |
+| `CLOUD_TASKS_QUEUE`      | `cloud_tasks_queue`                          |
+| `CLOUD_TASKS_INVOKER_SA` | `cloud_tasks_invoker_sa`                     |
+| `GCP_TASKS_SA_KEY`       | enqueue 用 SA の JSON キー                   |
+| `SLACK_BOT_TOKEN`        | Slack Bot Token                              |
+| `SLACK_SIGNING_SECRET`   | Slack Signing Secret                         |
+| `SENTRY_DSN`             | Sentry DSN（未設定なら捕捉しない）           |
+
+Vercel は Cloud Run へ直接 POST しない。ack の前に Cloud Tasks へ job を積み、キューが `POST /jobs` を開いたまま Worker を動かす。
 
 Dashboard か、リンク済みディレクトリから:
 
@@ -121,10 +135,31 @@ Dashboard か、リンク済みディレクトリから:
 cd apps/webhook
 pnpm exec vercel env add WORKER_URL production
 pnpm exec vercel env add WORKER_SECRET production
+pnpm exec vercel env add GCP_PROJECT_ID production
+pnpm exec vercel env add CLOUD_TASKS_LOCATION production
+pnpm exec vercel env add CLOUD_TASKS_QUEUE production
+pnpm exec vercel env add CLOUD_TASKS_INVOKER_SA production
+pnpm exec vercel env add GCP_TASKS_SA_KEY production
 pnpm exec vercel env add SLACK_BOT_TOKEN production
 pnpm exec vercel env add SLACK_SIGNING_SECRET production
 pnpm exec vercel env add SENTRY_DSN production
 ```
+
+### Cloud Tasks のリトライと deadline
+
+キュー `slack-ai-agent-jobs`（`region` と同じロケーション）:
+
+| 項目 | 値 |
+|---|---|
+| 最大試行 | 5 |
+| backoff | 10s から 300s（4 回まで倍増） |
+| リトライ期間の上限 | 3600s |
+| 同時 dispatch | Cloud Run の `worker_max_instances`（既定 5） |
+| HTTP dispatch deadline | 1800s（Cloud Tasks の上限。約 30 分） |
+
+Cloud Tasks がリトライするのは **429 / 5xx** と接続エラー。Worker が 401 / 400 を返したらリトライしない。lock 待ちの 503 はリトライ対象。30 分を超える Agent はこの経路の対象外（必要なら Cloud Run Jobs を別 issue で検討）。
+
+ローカル（`mise run webhook`）は Cloud Tasks を使わず、`WORKER_URL` へ HTTP を投げて Worker の完了は待たない。
 
 ## 6. Slack Events URL
 

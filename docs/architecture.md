@@ -14,18 +14,27 @@ Slack の slash から:
 
 Vercel Hobby（Slack 入口）+ Cloud Run（Agent）+ Upstash Redis。Upstash Vector は **wiki RAG 後続用**（Terraform / ローカル Qdrant は用意済みだが v1 では使わない）。
 
-- **Vercel**: 署名検証と 3 秒 ack（Events / slash / interactivity）
+- **Vercel**: 署名検証と 3 秒 ack（Events / slash / interactivity）。ack 前に Cloud Tasks へ enqueue
+- **Cloud Tasks**: `POST /jobs` を Cloud Run へ配送し、リクエスト中は接続を維持する
 - **Cloud Run**: Cursor SDK、GitHub API、Slack 返信
 - **Upstash Redis**: スレッド↔session、transcript、lock、重複排除
-- **Secret Manager**: `CURSOR_API_KEY`、Slack token、GitHub PAT、Worker 秘密
+- **Secret Manager**: `CURSOR_API_KEY`、Slack token、GitHub PAT、Worker 秘密、enqueue 用 SA キー
 
-本番の GCP / Upstash は Terraform（[infra/prd](../infra/prd/README.md)）。Vercel は Terraform 対象外で、apply 後の `worker_url` を渡す。
+本番の GCP / Upstash は Terraform（[infra/prd](../infra/prd/README.md)）。Vercel は Terraform 対象外で、apply 後の `worker_url` と Cloud Tasks の出力を渡す。
 
-ローカルはホストでアプリ、Docker で Redis（と後続用 Qdrant）。起動は [infra/dev/README.md](../infra/dev/README.md)。
+ローカルはホストでアプリ、Docker で Redis（と後続用 Qdrant）。起動は [infra/dev/README.md](../infra/dev/README.md)。本番の Vercel isolate は Slack ack 後に freeze するため、Cloud Run へ直接 `fetch` してはいけない。
+
+## Cloud Tasks の制約
+
+- HTTP task の **dispatch deadline は最大約 30 分**（実装は 1800 秒）。それを超える Agent はこの経路の対象外。超えるなら別 issue で Cloud Run Jobs を検討する
+- 失敗時のリトライはキューの `retry_config`（最大 5 回、backoff 10s〜300s、全体 3600s）。Cloud Tasks は HTTP **429 / 5xx** と接続失敗をリトライする。**4xx**（401 の秘密違い、400 の不正ジョブ）はリトライしない
+- Worker の `POST /jobs` はリクエストを開けたまま処理する。クライアントは Vercel ではなく Cloud Tasks
+- 同一 Slack `event_id` の再 enqueue は Cloud Tasks 上で ALREADY_EXISTS とし、成功扱い（Slack の再送に耐える）
 
 | 本番 | ローカル |
 |---|---|
 | Vercel Hobby | ホスト `webhook` :3000（`--watch`） |
+| Cloud Tasks | なし（`WORKER_URL` へ HTTP。完了は待たない） |
 | Cloud Run | ホスト `worker` :8080（`--watch`） |
 | Upstash Redis | Docker `redis` :6379 |
 | Upstash Vector（後続） | Docker `qdrant` :6333 |
@@ -44,7 +53,7 @@ flowchart LR
   end
 
   Curl[curl fake Slack event] --> Webhook
-  Webhook --> Worker
+  Webhook -->|"POST /jobs (完了は待たない)"| Worker
   Worker --> Redis
 ```
 
@@ -62,6 +71,7 @@ flowchart TB
   end
 
   subgraph gcpSide [GCP]
+    Tasks[Cloud Tasks queue]
     Run[Cloud Run Worker\nCursor SDK]
     SM[Secret Manager]
   end
@@ -80,7 +90,8 @@ flowchart TB
 
   User --> SlackAPI
   SlackAPI --> Edge
-  Edge -->|"POST + shared secret"| Run
+  Edge -->|"enqueue (await)"| Tasks
+  Tasks -->|"POST /jobs + OIDC"| Run
   Run --> SM
   Run --> Redis
   Run --> Cursor
@@ -98,14 +109,17 @@ flowchart TB
 sequenceDiagram
   participant Slack
   participant Vercel
+  participant Tasks as CloudTasks
   participant Run as CloudRun
   participant Redis
   participant Cursor as Cursor SDK
   participant GH as GitHub
 
   Slack->>Vercel: slash or view_submission
-  Vercel->>Vercel: verify and ack
-  Vercel->>Run: POST job
+  Vercel->>Vercel: verify
+  Vercel->>Tasks: create task (await)
+  Vercel->>Slack: ack within 3s
+  Tasks->>Run: POST /jobs (connection held)
   Run->>Redis: SETNX eventId and lock
   Run->>Cursor: organize title body labels
   Cursor-->>Run: structured issue draft
@@ -123,13 +137,16 @@ sequenceDiagram
 sequenceDiagram
   participant Slack
   participant Vercel
+  participant Tasks as CloudTasks
   participant Run as CloudRun
   participant Redis
   participant Cursor as Cursor SDK
   participant GH as GitHub
 
   Slack->>Vercel: /grill or thread reply
-  Vercel->>Run: POST job
+  Vercel->>Tasks: create task (await)
+  Vercel->>Slack: ack within 3s
+  Tasks->>Run: POST /jobs (connection held)
   Run->>Redis: lock + get sessionId
   Run->>Cursor: grilling round resume agentId
   Cursor-->>Run: questions or summary
