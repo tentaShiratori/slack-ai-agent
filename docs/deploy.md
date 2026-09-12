@@ -161,9 +161,17 @@ Cloud Tasks がリトライするのは **429 / 5xx** と接続エラー。Worke
 
 ローカル（`mise run webhook`）は Cloud Tasks を使わず、`WORKER_URL` へ HTTP を投げて Worker の完了は待たない。
 
-## 6. Slack Events URL
+## 6. Slack Request URL
 
-`mise run deploy-webhook` のあとに出る Vercel の URL を、Slack アプリの Event Subscriptions に設定する（`https://<project>.vercel.app/api/slack/events`）。Request URL の検証には Signing Secret が Vercel 側に入っている必要がある。
+`mise run deploy-webhook` のあとに出る Vercel の URL を、Slack アプリに設定する。署名検証には Signing Secret が Vercel 側に入っている必要がある。署名が違う／古いリクエストは **401**。
+
+| Slack の設定 | URL |
+| --- | --- |
+| Event Subscriptions | `https://<project>.vercel.app/api/slack/events` |
+| Slash Commands | `https://<project>.vercel.app/api/slack/commands` |
+| Interactivity | `https://<project>.vercel.app/api/slack/interactive` |
+
+Events は `url_verification` の challenge を返す。slash・`view_submission`・`app_mention`・スレッド返信は、ack の前に Cloud Tasks へ job を積む。
 
 ## デプロイ
 

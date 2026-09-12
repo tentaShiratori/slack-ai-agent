@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { enqueueJob } from "./enqueue-job.ts";
-import type { TasksClientLike } from "../infra/cloud-tasks.ts";
+import type { TasksClientLike } from "../infra/gcp/cloud-tasks.ts";
 
 const tasksEnv = {
   GCP_PROJECT_ID: "proj",
