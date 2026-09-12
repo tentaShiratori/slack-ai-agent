@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dead-code": "fallow dead-code && fallow dead-code --production",
+    "test": "pnpm --filter worker exec vitest",
     "fmt": "pnpm -r fmt",
     "fmt:check": "pnpm -r fmt:check",
     "lint": "pnpm -r lint"
