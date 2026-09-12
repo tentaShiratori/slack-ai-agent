@@ -9,11 +9,16 @@ vi.mock("../metrics/sentry.ts", () => ({
   flushSentry: vi.fn<(timeoutMs?: number) => Promise<void>>(async () => undefined),
 }));
 
+vi.mock("../constant/constant.ts", () => ({
+  isDevelopment: false,
+}));
+
 vi.mock("./verifyRequest.ts", () => ({
   verifySlackRequest: vi.fn<(req: VercelRequest) => void>(),
 }));
 
 const sentry = await import("../metrics/sentry.ts");
+const verify = await import("./verifyRequest.ts");
 const { withSlackApi } = await import("./with-slack-api.ts");
 
 function mockRes(headersSent = false) {
@@ -29,6 +34,7 @@ function mockRes(headersSent = false) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(verify.verifySlackRequest).mockImplementation(() => undefined);
 });
 
 test("ハンドラが成功したら 500 にしない", async () => {
@@ -52,6 +58,20 @@ test("ハンドラが投げたら Sentry に送り 500 を返す", async () => {
   expect(sentry.flushSentry).toHaveBeenCalled();
   expect(res.status).toHaveBeenCalledWith(500);
   expect(res.json).toHaveBeenCalledWith({ error: "internal" });
+});
+
+test("署名検証失敗は 401", async () => {
+  vi.mocked(verify.verifySlackRequest).mockImplementation(() => {
+    throw new Error("signature mismatch");
+  });
+  const res = mockRes();
+  const handler = withSlackApi(async (_req, response) => {
+    response.status(200).json("ok");
+  });
+  await handler({} as VercelRequest, res);
+  expect(res.status).toHaveBeenCalledWith(401);
+  expect(res.json).toHaveBeenCalledWith({ error: "unauthorized" });
+  expect(sentry.captureException).not.toHaveBeenCalled();
 });
 
 test("ヘッダ送信済みなら 500 を書かない", async () => {

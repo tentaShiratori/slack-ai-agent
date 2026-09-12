@@ -31,7 +31,15 @@ mise run deps-down
 ```powershell
 curl.exe -s http://localhost:3000/api/slack/events `
   -H "content-type: application/json" `
-  -d '{"type":"event_callback","event_id":"evt-1","event":{"channel":"C123","ts":"1.0","text":"hello wiki"}}'
+  -d '{"type":"event_callback","event_id":"evt-1","event":{"type":"app_mention","channel":"C123","ts":"1.0","text":"<@Ubot> hi"}}'
+
+curl.exe -s http://localhost:3000/api/slack/commands `
+  -H "content-type: application/x-www-form-urlencoded" `
+  -d "command=/feature&text=add+login&trigger_id=trig-1&channel_id=C123"
+
+curl.exe -s http://localhost:3000/api/slack/interactive `
+  -H "content-type: application/x-www-form-urlencoded" `
+  -d "payload={""type"":""view_submission"",""trigger_id"":""trig-2""}"
 ```
 
 Cursor SDK・slash／GitHub 連携は未実装またはスタブ。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。

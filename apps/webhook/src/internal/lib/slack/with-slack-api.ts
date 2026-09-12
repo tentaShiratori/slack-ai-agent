@@ -28,7 +28,7 @@ function isVerifySlackRequest(req: VercelRequest) {
 export function withSlackApi(fn: VercelApiHandler) {
   return async function handler(req: VercelRequest, res: VercelResponse) {
     if (!isDevelopment && !isVerifySlackRequest(req)) {
-      res.status(403).json("Forbidden");
+      res.status(401).json({ error: "unauthorized" });
       return;
     }
     try {
