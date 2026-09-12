@@ -2,9 +2,9 @@ import { createClient } from "redis";
 import type { JobStore } from "../job-store.ts";
 import { eventKey, lockKey, threadSessionKey } from "../redis-keys.ts";
 
-export const eventTtlSec = 24 * 60 * 60;
-export const lockTtlMs = 60 * 60 * 1000;
-export const sessionTtlSec = 7 * 24 * 60 * 60;
+const eventTtlSec = 24 * 60 * 60;
+const lockTtlMs = 60 * 60 * 1000;
+const sessionTtlSec = 7 * 24 * 60 * 60;
 
 const releaseLockScript = `
 if redis.call("get", KEYS[1]) == ARGV[1] then
@@ -14,7 +14,7 @@ else
 end
 `;
 
-export type RedisCommands = {
+type RedisCommands = {
   set(
     key: string,
     value: string,
@@ -26,9 +26,9 @@ export type RedisCommands = {
   close(): Promise<void>;
 };
 
-export type RedisJobStore = JobStore & { close: () => Promise<void> };
+type RedisJobStore = JobStore & { close: () => Promise<void> };
 
-export function createRedisJobStore(client: RedisCommands): RedisJobStore {
+function createRedisJobStore(client: RedisCommands): RedisJobStore {
   return {
     async claimEvent(eventId) {
       const result = await client.set(eventKey(eventId), "1", { NX: true, EX: eventTtlSec });
