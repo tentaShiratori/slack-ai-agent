@@ -10,7 +10,7 @@ export const tasksOnlyKeys = [
   "GCP_TASKS_SA_KEY",
 ] as const;
 
-export const tasksEnvKeys = [...tasksOnlyKeys, "WORKER_URL", "WORKER_SECRET"] as const;
+const tasksEnvKeys = [...tasksOnlyKeys, "WORKER_URL", "WORKER_SECRET"] as const;
 
 export type CloudTasksConfig = {
   projectId: string;
@@ -43,7 +43,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function queuePath(project: string, location: string, queue: string): string {
+function queuePath(project: string, location: string, queue: string): string {
   return `projects/${project}/locations/${location}/queues/${queue}`;
 }
 
@@ -51,7 +51,7 @@ export function jobsUrl(workerUrl: string): string {
   return `${workerUrl.replace(/\/$/, "")}/jobs`;
 }
 
-export function taskIdFromBody(rawBody: string): string | undefined {
+function taskIdFromBody(rawBody: string): string | undefined {
   try {
     const parsed: unknown = JSON.parse(rawBody);
     if (!isRecord(parsed)) {
@@ -71,7 +71,7 @@ export function taskIdFromBody(rawBody: string): string | undefined {
   }
 }
 
-export function isAlreadyExistsError(error: unknown): boolean {
+function isAlreadyExistsError(error: unknown): boolean {
   if (!isRecord(error)) {
     return false;
   }

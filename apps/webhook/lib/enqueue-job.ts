@@ -11,9 +11,9 @@ import { createHttpDispatcher } from "./http-dispatch.js";
 
 const cloudTasksScope = "https://www.googleapis.com/auth/cloud-tasks";
 
-export type JobDispatcher = (rawBody: string) => Promise<void>;
+type JobDispatcher = (rawBody: string) => Promise<void>;
 
-export type DispatcherDeps = {
+type DispatcherDeps = {
   tasksClient?: TasksClientLike;
   fetchFn?: typeof fetch;
   getAccessToken?: () => Promise<string>;
@@ -37,7 +37,7 @@ function jwtAccessToken(credentials: {
   };
 }
 
-export function createJobDispatcher(
+function createJobDispatcher(
   env: NodeJS.Dict<string> = process.env,
   deps: DispatcherDeps = {},
 ): JobDispatcher {
@@ -70,8 +70,12 @@ export function createJobDispatcher(
 
 let cached: JobDispatcher | undefined;
 
-export function resetJobDispatcherCache(): void {
-  cached = undefined;
+function hasDispatcherDeps(deps: DispatcherDeps): boolean {
+  return (
+    deps.tasksClient !== undefined ||
+    deps.fetchFn !== undefined ||
+    deps.getAccessToken !== undefined
+  );
 }
 
 export async function enqueueJob(
@@ -79,6 +83,10 @@ export async function enqueueJob(
   env: NodeJS.Dict<string> = process.env,
   deps: DispatcherDeps = {},
 ): Promise<void> {
+  if (hasDispatcherDeps(deps)) {
+    await createJobDispatcher(env, deps)(rawBody);
+    return;
+  }
   if (!cached) {
     cached = createJobDispatcher(env, deps);
   }

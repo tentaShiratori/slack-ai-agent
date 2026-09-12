@@ -2,9 +2,6 @@ import { expect, test, vi } from "vitest";
 import {
   cloudTasksConfigFromEnv,
   createCloudTasksDispatcher,
-  isAlreadyExistsError,
-  queuePath,
-  taskIdFromBody,
   type TasksClientLike,
 } from "./cloud-tasks.ts";
 
@@ -33,25 +30,39 @@ function fakeTasksClient() {
   return { client, createTask };
 }
 
-test("event_id をタスク ID にする", () => {
-  expect(taskIdFromBody(JSON.stringify({ event_id: "EvABC" }))).toBe("EvABC");
+test("event_id をタスク ID にする", async () => {
+  const { client, createTask } = fakeTasksClient();
+  await createCloudTasksDispatcher(
+    cloudTasksConfigFromEnv(tasksEnv),
+    client,
+  )(JSON.stringify({ event_id: "EvABC" }));
+  expect(createTask.mock.calls[0]?.[0].task.name).toBe(
+    "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs/tasks/EvABC",
+  );
 });
 
-test("trigger_id のドットはアンダースコアにする", () => {
-  expect(taskIdFromBody(JSON.stringify({ trigger_id: "123.456" }))).toBe("123_456");
+test("trigger_id のドットはアンダースコアにする", async () => {
+  const { client, createTask } = fakeTasksClient();
+  await createCloudTasksDispatcher(
+    cloudTasksConfigFromEnv(tasksEnv),
+    client,
+  )(JSON.stringify({ trigger_id: "123.456" }));
+  expect(createTask.mock.calls[0]?.[0].task.name).toBe(
+    "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs/tasks/123_456",
+  );
 });
 
-test("JSON でなければタスク ID なし", () => {
-  expect(taskIdFromBody("not-json")).toBeUndefined();
-  expect(taskIdFromBody("[]")).toBeUndefined();
-  expect(taskIdFromBody(JSON.stringify({}))).toBeUndefined();
-});
-
-test("ALREADY_EXISTS を判定する", () => {
-  expect(isAlreadyExistsError({ code: 6 })).toBe(true);
-  expect(isAlreadyExistsError({ code: "ALREADY_EXISTS" })).toBe(true);
-  expect(isAlreadyExistsError({ code: 5 })).toBe(false);
-  expect(isAlreadyExistsError("nope")).toBe(false);
+test("JSON でなければタスク名を付けない", async () => {
+  const { client, createTask } = fakeTasksClient();
+  const enqueue = createCloudTasksDispatcher(cloudTasksConfigFromEnv(tasksEnv), client);
+  await enqueue("not-json");
+  await enqueue("[]");
+  await enqueue("{}");
+  expect(createTask.mock.calls.map((call) => call[0].task.name)).toEqual([
+    undefined,
+    undefined,
+    undefined,
+  ]);
 });
 
 test("Cloud Tasks は POST /jobs を積んで完了を待たない", async () => {
@@ -64,9 +75,6 @@ test("Cloud Tasks は POST /jobs を積んで完了を待たない", async () =>
   const request = createTask.mock.calls[0]?.[0];
   expect(request?.parent).toBe(
     "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs",
-  );
-  expect(request?.task.name).toBe(
-    "projects/proj/locations/asia-northeast1/queues/slack-ai-agent-jobs/tasks/Ev1",
   );
   expect(request?.task.httpRequest).toMatchObject({
     httpMethod: "POST",
@@ -87,6 +95,13 @@ test("Cloud Tasks は POST /jobs を積んで完了を待たない", async () =>
 test("同じタスクが既にあるときは成功にする", async () => {
   const { client, createTask } = fakeTasksClient();
   createTask.mockRejectedValueOnce({ code: 6 });
+  const enqueue = createCloudTasksDispatcher(cloudTasksConfigFromEnv(tasksEnv), client);
+  await expect(enqueue(JSON.stringify({ eventId: "e1" }))).resolves.toBeUndefined();
+});
+
+test("ALREADY_EXISTS 文字列も成功にする", async () => {
+  const { client, createTask } = fakeTasksClient();
+  createTask.mockRejectedValueOnce({ code: "ALREADY_EXISTS" });
   const enqueue = createCloudTasksDispatcher(cloudTasksConfigFromEnv(tasksEnv), client);
   await expect(enqueue(JSON.stringify({ eventId: "e1" }))).resolves.toBeUndefined();
 });
@@ -114,10 +129,4 @@ test("キーの \\n を改行に戻す", () => {
   const config = cloudTasksConfigFromEnv(tasksEnv);
   expect(config.credentials.private_key).toContain("\n");
   expect(config.credentials.private_key).not.toContain("\\n");
-});
-
-test("queuePath を組み立てる", () => {
-  expect(queuePath("proj", "asia-northeast1", "jobs")).toBe(
-    "projects/proj/locations/asia-northeast1/queues/jobs",
-  );
 });
