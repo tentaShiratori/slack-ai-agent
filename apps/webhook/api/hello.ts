@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { withSlackApi } from "../lib/api/withSlackApi.js";
-import { slack } from "../lib/slack.js";
+import { withSlackApi } from "../src/internal/lib/slack/with-slack-api.js";
+import { slack } from "../src/internal/infra/slack/client.js";
 
 export default withSlackApi(async function handler(_: VercelRequest, res: VercelResponse) {
   await slack.client.chat.postMessage({

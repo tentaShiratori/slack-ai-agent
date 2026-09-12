@@ -6,8 +6,8 @@ import {
   missingKeys,
   tasksOnlyKeys,
   type TasksClientLike,
-} from "./cloud-tasks.js";
-import { createHttpDispatcher } from "./http-dispatch.js";
+} from "../infra/gcp/cloud-tasks.ts";
+import { createHttpDispatcher } from "../infra/gcp/http-dispatch.ts";
 
 const cloudTasksScope = "https://www.googleapis.com/auth/cloud-tasks";
 

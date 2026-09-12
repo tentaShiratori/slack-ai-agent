@@ -38,7 +38,7 @@ run = "docker compose down"
 [tasks.webhook]
 description = "Slack Events webhook on host (watch)"
 dir = "apps/webhook"
-run = "node --watch --experimental-strip-types local/server.ts"
+run = "node --watch --experimental-strip-types src/server.ts"
 env.PORT = "3000"
 
 [tasks.worker]

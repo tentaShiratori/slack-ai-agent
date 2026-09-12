@@ -1,4 +1,4 @@
-import { jobsUrl } from "./cloud-tasks.js";
+import { jobsUrl } from "./cloud-tasks.ts";
 
 export type HttpDispatchConfig = {
   workerUrl: string;

@@ -1,7 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { withSlackApi } from "../../lib/api/withSlackApi.js";
-import { enqueueJob } from "../../lib/enqueue-job.js";
-import { handleSlackEvent } from "../../lib/handle-slack-event.js";
+import { withSlackApi } from "../../src/internal/lib/slack/with-slack-api.js";
+import { enqueueJob } from "../../src/internal/usecase/enqueue-job.js";
+import { handleSlackEvent } from "../../src/internal/lib/slack/handle-slack-event.js";
 
 function rawBodyOf(req: VercelRequest): string {
   if (typeof req.body === "string") {

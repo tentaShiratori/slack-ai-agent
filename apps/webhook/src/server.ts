@@ -1,10 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { env } from "../lib/env.ts";
-import { enqueueJob } from "../lib/enqueue-job.ts";
-import { handleSlackEvent } from "../lib/handle-slack-event.ts";
-import { errorFields, log } from "../lib/logger.ts";
-import { captureException, initSentry } from "../lib/sentry.ts";
+import { env } from "./internal/lib/constant/env.ts";
+import { enqueueJob } from "./internal/usecase/enqueue-job.ts";
+import { handleSlackEvent } from "./internal/lib/slack/handle-slack-event.ts";
+import { errorFields, log } from "./internal/lib/metrics/logger.ts";
+import { captureException, initSentry } from "./internal/lib/metrics/sentry.ts";
 
 process.env.SERVICE_NAME ??= env.SERVICE_NAME ?? "webhook";
 initSentry({

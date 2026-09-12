@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext"],
-    "module": "nodenext",
-    "target": "esnext",
-    "moduleResolution": "nodenext",
-    "noEmit": true,
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "strict": true,
     "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
-    "allowJs": true
-  }
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "api/**/*.ts"],
+  "exclude": ["src/**/*.test.ts"]
 }

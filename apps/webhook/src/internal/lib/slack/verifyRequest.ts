@@ -1,15 +1,7 @@
 import { createHmac } from "crypto";
-import pkg from "@slack/bolt";
 import { VercelRequest } from "@vercel/node";
 import tsscmp from "tsscmp";
-import { env } from "./env.js";
-
-const { App } = pkg;
-
-export const slack = new App({
-  token: env.SLACK_BOT_TOKEN,
-  signingSecret: env.SLACK_SIGNING_SECRET,
-});
+import { env } from "../../lib/constant/env.js";
 
 // ------------------------------
 // HTTP module independent methods

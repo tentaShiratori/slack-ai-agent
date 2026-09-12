@@ -8,6 +8,7 @@
     "lint:fix": "oxlint --fix .",
     "fmt": "oxfmt .",
     "fmt:check": "oxfmt --check .",
+    "typecheck": "tsc --noEmit",
     "openapi:gen": "node ./script/generate_openapi.ts",
     "test": "vitest"
   },
@@ -26,10 +27,9 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@types/tsscmp": "^1.0.2",
     "oxlint-tsgolint": "^7.0.2001",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.11"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
   }
 }

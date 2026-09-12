@@ -69,7 +69,7 @@ Vercel の webhook ログは [Vercel Dashboard](https://vercel.com/dashboard) �
 
 ## Sentry
 
-未処理例外は Worker で捕捉する。webhook も `withSlackApi` とローカル stand-in で同じ DSN に送る。`SENTRY_DSN` が空なら何もしない。
+未処理例外は Worker で捕捉する。webhook も `withSlackApi` と `src/server.ts` で同じ DSN に送る。`SENTRY_DSN` が空なら何もしない。
 
 ### プロジェクト（無料枠）
 

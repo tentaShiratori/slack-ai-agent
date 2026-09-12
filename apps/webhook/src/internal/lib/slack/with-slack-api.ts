@@ -1,9 +1,9 @@
 import { VercelApiHandler, VercelRequest, VercelResponse } from "@vercel/node";
-import { isDevelopment } from "../constant.js";
-import { env } from "../env.js";
-import { errorFields, log } from "../logger.js";
-import { captureException, flushSentry, initSentry } from "../sentry.js";
-import { verifySlackRequest } from "../slack.js";
+import { env } from "../constant/env.js";
+import { isDevelopment } from "../constant/constant.ts";
+import { errorFields, log } from "../metrics/logger.ts";
+import { captureException, flushSentry, initSentry } from "../metrics/sentry.ts";
+import { verifySlackRequest } from "./verifyRequest.ts";
 
 process.env.SERVICE_NAME ??= env.SERVICE_NAME ?? "webhook";
 initSentry({

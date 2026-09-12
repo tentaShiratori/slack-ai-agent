@@ -3,18 +3,18 @@ import { beforeEach, expect, test, vi } from "vitest";
 
 process.env.VERCEL_ENV = "development";
 
-vi.mock("../sentry.js", () => ({
+vi.mock("../metrics/sentry.ts", () => ({
   initSentry: vi.fn<() => boolean>(),
   captureException: vi.fn<(error: unknown) => void>(),
   flushSentry: vi.fn<(timeoutMs?: number) => Promise<void>>(async () => undefined),
 }));
 
-vi.mock("../slack.js", () => ({
+vi.mock("./verifyRequest.ts", () => ({
   verifySlackRequest: vi.fn<(req: VercelRequest) => void>(),
 }));
 
-const sentry = await import("../sentry.js");
-const { withSlackApi } = await import("./withSlackApi.ts");
+const sentry = await import("../metrics/sentry.ts");
+const { withSlackApi } = await import("./with-slack-api.ts");
 
 function mockRes(headersSent = false) {
   return {
