@@ -1,5 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { errorFields, log } from "../lib/logger.ts";
+import { captureException, initSentry } from "../lib/sentry.ts";
+
+process.env.SERVICE_NAME ??= "webhook";
+initSentry();
 
 const port = Number(process.env.PORT ?? 3000);
 const workerUrl = process.env.WORKER_URL ?? "http://127.0.0.1:8080";
@@ -75,8 +80,9 @@ async function handleEvents(req: IncomingMessage, res: ServerResponse) {
       "x-worker-secret": workerSecret,
     },
     body: rawBody,
-  }).catch((error) => {
-    console.error("failed to dispatch worker", error);
+  }).catch((error: unknown) => {
+    captureException(error);
+    log("ERROR", "failed to dispatch worker", errorFields(error));
   });
 }
 
@@ -90,7 +96,8 @@ const server = createServer(async (req, res) => {
     try {
       await handleEvents(req, res);
     } catch (error) {
-      console.error(error);
+      captureException(error);
+      log("ERROR", "unhandled request error", errorFields(error));
       if (!res.headersSent) {
         json(res, 500, { error: "internal" });
       }
@@ -101,5 +108,5 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, "0.0.0.0", () => {
-  console.log(`webhook (Vercel stand-in) listening on ${port}`);
+  log("INFO", "webhook listening", { port });
 });

@@ -1,6 +1,11 @@
 import { VercelApiHandler, VercelRequest, VercelResponse } from "@vercel/node";
 import { isDevelopment } from "../constant.js";
+import { errorFields, log } from "../logger.js";
+import { captureException, flushSentry, initSentry } from "../sentry.js";
 import { verifySlackRequest } from "../slack.js";
+
+process.env.SERVICE_NAME ??= "webhook";
+initSentry();
 
 function isVerifySlackRequest(req: VercelRequest) {
   try {
@@ -22,7 +27,15 @@ export function withSlackApi(fn: VercelApiHandler) {
       res.status(403).json("Forbidden");
       return;
     }
-    await fn(req, res);
-    return;
+    try {
+      await fn(req, res);
+    } catch (error) {
+      captureException(error);
+      log("ERROR", "slack api handler failed", errorFields(error));
+      await flushSentry();
+      if (!res.headersSent) {
+        res.status(500).json({ error: "internal" });
+      }
+    }
   };
 }
