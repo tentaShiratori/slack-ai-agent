@@ -40,4 +40,4 @@ terraform apply
 
 状態ファイルは git に含めない。チームで共有するときは `terraform.tf` の GCS backend コメントを外す。
 
-予算アラートの apply には、課金アカウントで予算を作る権限（Billing Account Administrator など）が必要。見方は [docs/ops.md](../../docs/ops.md)。
+予算アラートは [modules/budget](../modules/budget) を使う。apply には課金アカウントで予算を作る権限（Billing Account Administrator など）が必要。見方は [docs/ops.md](../../docs/ops.md)。
