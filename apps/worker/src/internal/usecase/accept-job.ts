@@ -1,3 +1,4 @@
+import type { GitHubClient } from "../github.ts";
 import type { JobStore } from "../job-store.ts";
 import type { Job } from "../parse-job.ts";
 import { getThreadSession } from "../query/get-thread-session.ts";
@@ -11,6 +12,7 @@ export type AcceptJobResult =
 
 export type AcceptJobDeps = {
   store: JobStore;
+  github?: GitHubClient;
   createSessionId?: () => string;
   createLockToken?: () => string;
   sleep?: (ms: number) => Promise<void>;

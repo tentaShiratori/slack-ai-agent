@@ -6,6 +6,7 @@ locals {
       WORKER_SECRET             = "worker-secret"
       CURSOR_API_KEY            = "cursor-api-key"
       SLACK_BOT_TOKEN           = "slack-bot-token"
+      GITHUB_PAT                = "github-pat"
       REDIS_URL                 = "redis-url"
       UPSTASH_REDIS_REST_URL    = "upstash-redis-rest-url"
       UPSTASH_REDIS_REST_TOKEN  = "upstash-redis-rest-token"
@@ -83,6 +84,29 @@ resource "google_cloud_run_v2_service" "worker" {
       env {
         name  = "SERVICE_NAME"
         value = "worker"
+      }
+
+      env {
+        name  = "GITHUB_DEFAULT_REPO"
+        value = var.github_default_repo
+      }
+
+      env {
+        name  = "GITHUB_PROJECT_ID"
+        value = var.github_project_id
+      }
+
+      env {
+        name  = "GITHUB_DISCUSSION_CATEGORY_ID"
+        value = var.github_discussion_category_id
+      }
+
+      dynamic "env" {
+        for_each = var.github_discussion_repo != "" ? [var.github_discussion_repo] : []
+        content {
+          name  = "GITHUB_DISCUSSION_REPO"
+          value = env.value
+        }
       }
 
       dynamic "env" {

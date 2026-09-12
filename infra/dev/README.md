@@ -19,6 +19,8 @@ cp infra/dev/.env.example infra/dev/.env
 mise run dev
 ```
 
+`infra/dev/.env` に GitHub fine-grained PAT と、デフォルトの `owner/repo` / Project id / Discussion カテゴリ id を入れる。mise の `[env]` には起動用のプレースホルダがある。本番は Secret Manager の `GITHUB_PAT` と Cloud Run の env。
+
 データストアだけ起動 / 停止:
 
 ```bash

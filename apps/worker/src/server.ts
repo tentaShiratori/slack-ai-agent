@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "./env.ts";
 import { handleRequest } from "./internal/controller/http.ts";
+import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
@@ -39,9 +40,10 @@ async function main() {
 
   log("INFO", "starting worker");
   const store = await connectRedisJobStore(env.REDIS_URL);
+  const github = createGitHubClient(githubConfigFromEnv(env));
   const deps = {
     expectedSecret: env.WORKER_SECRET,
-    accept: { store },
+    accept: { store, github },
   };
 
   const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
