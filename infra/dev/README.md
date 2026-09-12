@@ -31,7 +31,7 @@ mise run deps-down
 ```powershell
 curl.exe -s http://localhost:3000/api/slack/events `
   -H "content-type: application/json" `
-  -d '{"type":"event_callback","event_id":"evt-1","event":{"channel":"C123","ts":"1.0","text":"hello wiki"}}'
+  -d '{"type":"event_callback","event_id":"evt-1","event":{"type":"app_mention","channel":"C123","ts":"1.0","text":"<@U123>"}}'
 ```
 
-Cursor SDK・slash／GitHub 連携は未実装またはスタブ。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。
+Worker が slash ヘルプを `chat.postMessage` する。`SLACK_BOT_TOKEN` がダミーだと Slack API は失敗する。Cursor SDK・slash／GitHub 連携は未実装またはスタブ。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。

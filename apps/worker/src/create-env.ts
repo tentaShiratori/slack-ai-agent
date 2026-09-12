@@ -13,6 +13,7 @@ export function createWorkerEnv(runtimeEnv: RuntimeEnv, skipValidation = false) 
       PORT: z.coerce.number().int().positive().default(8080),
       REDIS_URL: z.string().url(),
       WORKER_SECRET: z.string().min(1),
+      SLACK_BOT_TOKEN: z.string().min(1),
       SENTRY_DSN: z.string().url().optional(),
       SENTRY_ENVIRONMENT: z.string().min(1).optional(),
       NODE_ENV: z.enum(["development", "test", "production"]).optional(),

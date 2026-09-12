@@ -16,7 +16,7 @@ test("Slack event_callback を読む", () => {
       event_id: "evt-1",
       event: { channel: "C123", thread_ts: "2.0", ts: "1.0", text: "hello" },
     }),
-  ).toEqual({ eventId: "evt-1", channelId: "C123", threadTs: "2.0" });
+  ).toEqual({ eventId: "evt-1", channelId: "C123", threadTs: "2.0", text: "hello" });
 });
 
 test("thread_ts が無いときは ts を使う", () => {
@@ -75,4 +75,63 @@ test("threadTs が無いなら invalid_job", () => {
 
 test("空オブジェクトは invalid_job", () => {
   expect(() => parseJob({})).toThrow(JobParseError);
+});
+
+test("app_mention の type と text を読む", () => {
+  expect(
+    parseJob({
+      type: "event_callback",
+      event_id: "evt-1",
+      event: {
+        type: "app_mention",
+        channel: "C123",
+        ts: "1.0",
+        text: "<@U123>",
+      },
+    }),
+  ).toEqual({
+    eventId: "evt-1",
+    channelId: "C123",
+    threadTs: "1.0",
+    eventType: "app_mention",
+    text: "<@U123>",
+  });
+});
+
+test("bot_id と subtype を読む", () => {
+  expect(
+    parseJob({
+      event_id: "evt-1",
+      event: {
+        type: "app_mention",
+        channel: "C123",
+        ts: "1.0",
+        text: "<@U123>",
+        bot_id: "B1",
+        subtype: "bot_message",
+      },
+    }),
+  ).toEqual({
+    eventId: "evt-1",
+    channelId: "C123",
+    threadTs: "1.0",
+    eventType: "app_mention",
+    text: "<@U123>",
+    botId: "B1",
+    subtype: "bot_message",
+  });
+});
+
+test("text が空なら省略する", () => {
+  expect(
+    parseJob({
+      event_id: "evt-1",
+      event: { type: "message", channel: "C123", ts: "1.0", text: "" },
+    }),
+  ).toEqual({
+    eventId: "evt-1",
+    channelId: "C123",
+    threadTs: "1.0",
+    eventType: "message",
+  });
 });

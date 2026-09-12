@@ -12,6 +12,7 @@ uv = "0.12.9"
 [env]
 MISE_PIN = true
 WORKER_SECRET = "dev-secret"
+SLACK_BOT_TOKEN = "xoxb-dev"
 SKIP_SLACK_VERIFY = "1"
 REDIS_URL = "redis://127.0.0.1:6379"
 QDRANT_URL = "http://127.0.0.1:6333"
