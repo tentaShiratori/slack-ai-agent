@@ -79,3 +79,32 @@ variable "allow_unauthenticated" {
   default     = true
   description = "Allow public Cloud Run invoke. Vercel authenticates with WORKER_SECRET"
 }
+
+variable "sentry_dsn" {
+  type        = string
+  sensitive   = true
+  default     = ""
+  description = "Sentry DSN for the worker. Empty disables Sentry"
+}
+
+variable "billing_account_id" {
+  type        = string
+  description = "Cloud Billing account ID (XXXXXX-XXXXXX-XXXXXX) for the monthly budget alert"
+}
+
+variable "alert_email" {
+  type        = string
+  description = "Email for GCP budget alerts"
+}
+
+variable "monthly_budget_amount" {
+  type        = number
+  default     = 10
+  description = "Monthly budget amount in budget_currency"
+}
+
+variable "budget_currency" {
+  type        = string
+  default     = "USD"
+  description = "Must match the billing account currency"
+}

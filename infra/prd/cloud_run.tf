@@ -1,16 +1,19 @@
 locals {
   worker_image = var.worker_image != "" ? var.worker_image : "us-docker.pkg.dev/cloudrun/container/hello"
 
-  worker_secret_env = {
-    WORKER_SECRET             = "worker-secret"
-    CURSOR_API_KEY            = "cursor-api-key"
-    SLACK_BOT_TOKEN           = "slack-bot-token"
-    REDIS_URL                 = "redis-url"
-    UPSTASH_REDIS_REST_URL    = "upstash-redis-rest-url"
-    UPSTASH_REDIS_REST_TOKEN  = "upstash-redis-rest-token"
-    UPSTASH_VECTOR_REST_URL   = "upstash-vector-rest-url"
-    UPSTASH_VECTOR_REST_TOKEN = "upstash-vector-rest-token"
-  }
+  worker_secret_env = merge(
+    {
+      WORKER_SECRET             = "worker-secret"
+      CURSOR_API_KEY            = "cursor-api-key"
+      SLACK_BOT_TOKEN           = "slack-bot-token"
+      REDIS_URL                 = "redis-url"
+      UPSTASH_REDIS_REST_URL    = "upstash-redis-rest-url"
+      UPSTASH_REDIS_REST_TOKEN  = "upstash-redis-rest-token"
+      UPSTASH_VECTOR_REST_URL   = "upstash-vector-rest-url"
+      UPSTASH_VECTOR_REST_TOKEN = "upstash-vector-rest-token"
+    },
+    var.sentry_dsn != "" ? { SENTRY_DSN = "sentry-dsn" } : {},
+  )
 }
 
 resource "google_cloud_run_v2_service" "worker" {
@@ -70,6 +73,16 @@ resource "google_cloud_run_v2_service" "worker" {
       env {
         name  = "QDRANT_COLLECTION"
         value = upstash_vector_index.wiki.name
+      }
+
+      env {
+        name  = "SENTRY_ENVIRONMENT"
+        value = "production"
+      }
+
+      env {
+        name  = "SERVICE_NAME"
+        value = "worker"
       }
 
       dynamic "env" {

@@ -2,8 +2,17 @@ project_id      = "YOUR_GCP_PROJECT"
 upstash_email   = "you@example.com"
 upstash_api_key = "upstash-management-api-key"
 
-cursor_api_key = "cursor_..."
-slack_bot_token   = "xoxb-..."
+cursor_api_key  = "cursor_..."
+slack_bot_token = "xoxb-..."
+
+billing_account_id = "XXXXXX-XXXXXX-XXXXXX"
+alert_email        = "you@example.com"
+# Must match the billing account currency. Amount is 10 USD by default.
+# budget_currency       = "USD"
+# monthly_budget_amount = 10
+
+# Empty disables Sentry on Cloud Run.
+sentry_dsn = "https://examplePublicKey@o0.ingest.sentry.io/0"
 
 # After the first worker image is pushed:
 # worker_image = "asia-northeast1-docker.pkg.dev/YOUR_GCP_PROJECT/slack-ai-workerker/worker:latest"
