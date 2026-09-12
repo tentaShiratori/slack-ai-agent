@@ -15,6 +15,7 @@ export function createWorkerEnv(runtimeEnv: RuntimeEnv, skipValidation = false) 
       PORT: z.coerce.number().int().positive().default(8080),
       REDIS_URL: z.string().url(),
       WORKER_SECRET: z.string().min(1),
+      SLACK_BOT_TOKEN: z.string().min(1),
       GITHUB_PAT: z.string().min(1),
       GITHUB_DEFAULT_REPO: ownerRepo,
       GITHUB_PROJECT_ID: z.string().min(1),
