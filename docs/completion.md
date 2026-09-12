@@ -26,6 +26,8 @@ grilling セッションで合意した Done の線。実装・issue・受け入
 
 ### 運用（GCP / Sentry 無料枠）
 
+見方と設定手順は [ops.md](ops.md)。再デプロイは [deploy.md](deploy.md)。
+
 1. 本番デプロイ済み＆自分の Slack で実コマンドが通る
 2. [deploy.md](deploy.md) で再デプロイ再現可
 3. 失敗時はスレッドに短いエラー返信

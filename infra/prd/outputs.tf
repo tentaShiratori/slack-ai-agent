@@ -24,3 +24,8 @@ output "upstash_redis_endpoint" {
 output "upstash_vector_endpoint" {
   value = upstash_vector_index.wiki.endpoint
 }
+
+output "budget_display_name" {
+  description = "Monthly GCP budget alert created in Cloud Billing"
+  value       = module.budget.display_name
+}

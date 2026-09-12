@@ -1,6 +1,6 @@
 # デプロイ前の準備
 
-本番は Vercel（`apps/webhook`）と Cloud Run（`apps/worker`）。構成の説明は [architecture.md](architecture.md)、GCP / Upstash のリソース定義は [infra/prd/README.md](../infra/prd/README.md)。
+本番は Vercel（`apps/webhook`）と Cloud Run（`apps/worker`）。構成の説明は [architecture.md](architecture.md)、GCP / Upstash のリソース定義は [infra/prd/README.md](../infra/prd/README.md)。ログ・メトリクス・Sentry・予算アラートの見方は [ops.md](ops.md)。
 
 このページは **一度だけ** やる認証とリンク。終わったら `mise run deploy`（または `deploy-webhook` / `deploy-worker`）で載せられる。
 
@@ -14,6 +14,8 @@
 - [Upstash Management API key](https://console.upstash.com/account/api)
 - Slack アプリの Bot Token（`xoxb-...`）と Signing Secret
 - Cursor API key（[Dashboard → Integrations](https://cursor.com/dashboard/integrations)）
+- [Sentry](https://sentry.io/) の Node プロジェクト（Developer 無料枠で可）と DSN
+- GCP 課金アカウント ID と、予算アラートのメールアドレス
 
 リポジトリルートでツールを入れる:
 
@@ -80,7 +82,7 @@ cd infra/prd
 copy terraform.tfvars.example terraform.tfvars
 ```
 
-`terraform.tfvars` に `project_id`、Upstash、`cursor_api_key`、`slack_bot_token` を入れる。ファイルは git 対象外。
+`terraform.tfvars` に `project_id`、Upstash、`cursor_api_key`、`slack_bot_token`、`billing_account_id`、`alert_email`、`sentry_dsn` を入れる。ファイルは git 対象外。課金アカウント ID は [Billing accounts](https://console.cloud.google.com/billing) で確認可能。通貨が USD でないときは `budget_currency` を合わせる。
 
 ```powershell
 mise run infra-init
@@ -105,12 +107,13 @@ gcloud secrets versions access latest --secret=WORKER_SECRET_ID
 
 `apps/webhook` の Vercel プロジェクトに、Production の Environment Variables を設定する。
 
-| 変数                   | 値                                |
-| ---------------------- | --------------------------------- |
-| `WORKER_URL`           | `worker_url` の出力               |
-| `WORKER_SECRET`        | Secret Manager の `worker-secret` |
-| `SLACK_BOT_TOKEN`      | Slack Bot Token                   |
-| `SLACK_SIGNING_SECRET` | Slack Signing Secret              |
+| 変数                   | 値                                 |
+| ---------------------- | ---------------------------------- |
+| `WORKER_URL`           | `worker_url` の出力                |
+| `WORKER_SECRET`        | Secret Manager の `worker-secret`  |
+| `SLACK_BOT_TOKEN`      | Slack Bot Token                    |
+| `SLACK_SIGNING_SECRET` | Slack Signing Secret               |
+| `SENTRY_DSN`           | Sentry DSN（未設定なら捕捉しない） |
 
 Dashboard か、リンク済みディレクトリから:
 
@@ -120,6 +123,7 @@ pnpm exec vercel env add WORKER_URL production
 pnpm exec vercel env add WORKER_SECRET production
 pnpm exec vercel env add SLACK_BOT_TOKEN production
 pnpm exec vercel env add SLACK_SIGNING_SECRET production
+pnpm exec vercel env add SENTRY_DSN production
 ```
 
 ## 6. Slack Events URL
@@ -138,3 +142,5 @@ mise run deploy-worker
 両方なら `mise run deploy`。
 
 `deploy-worker` は `gcloud run deploy slack-ai-agent-worker --source .` で、Cloud Build が `apps/worker` の Dockerfile をビルドする。プロジェクトは手順 1 の `gcloud config set project`、サービス名とリージョンは `mise.toml` の `[vars]`。
+
+Sentry のメールアラートと Cloud Logging / Cloud Run メトリクスの確認は [ops.md](ops.md)。予算アラートは Terraform apply で作られる。

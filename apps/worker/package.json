@@ -12,14 +12,15 @@
     "fmt:check": "oxfmt --check ."
   },
   "dependencies": {
-    "oxfmt": "^0.67.0",
-    "oxlint": "^1.82.0",
+    "@sentry/node": "^10.74.0",
     "redis": "^6.2.1"
   },
   "devDependencies": {
     "@types/node": "^26.5.0",
+    "oxfmt": "^0.67.0",
+    "oxlint": "^1.82.0",
     "oxlint-tsgolint": "^7.0.2001",
     "typescript": "^7.0.2",
-    "vitest": "^5.0.0"
+    "vitest": "^4.1.11"
   }
 }

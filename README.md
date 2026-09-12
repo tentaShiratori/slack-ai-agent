@@ -48,6 +48,7 @@ mise run dev
 | [docs/completion.md](docs/completion.md) | v1 完成の定義 |
 | [docs/architecture.md](docs/architecture.md) | 実行時構成 |
 | [docs/deploy.md](docs/deploy.md) | 本番デプロイ準備 |
+| [docs/ops.md](docs/ops.md) | Sentry・構造化ログ・メトリクス・予算アラート |
 | [docs/adr/](docs/adr/) | 意思決定 |
 | [CONTEXT.md](CONTEXT.md) | 用語集 |
 | [AGENTS.md](AGENTS.md) | エージェント運用 |

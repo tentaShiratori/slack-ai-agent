@@ -1,6 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { handleRequest } from "./internal/controller/http.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
+import { errorFields, log } from "./logger.ts";
+import { captureException, flushSentry, initSentry } from "./sentry.ts";
+
+process.env.SERVICE_NAME ??= "worker";
 
 const port = Number(process.env.PORT ?? 8080);
 
@@ -27,12 +31,14 @@ function json(res: ServerResponse, status: number, body: unknown) {
 }
 
 async function main() {
+  initSentry();
+
   const redisUrl = process.env.REDIS_URL;
   if (!redisUrl) {
     throw new Error("REDIS_URL is required");
   }
 
-  console.log("starting worker");
+  log("INFO", "starting worker");
   const store = await connectRedisJobStore(redisUrl);
   const deps = {
     expectedSecret: process.env.WORKER_SECRET ?? "",
@@ -53,7 +59,8 @@ async function main() {
       );
       json(res, result.status, result.body);
     } catch (error) {
-      console.error(error);
+      captureException(error);
+      log("ERROR", "unhandled request error", errorFields(error));
       if (!res.headersSent) {
         json(res, 500, { error: "internal" });
       }
@@ -63,6 +70,7 @@ async function main() {
   const shutdown = () => {
     server.close(async () => {
       await store.close();
+      await flushSentry();
       process.exit(0);
     });
   };
@@ -70,11 +78,13 @@ async function main() {
   process.on("SIGINT", shutdown);
 
   server.listen(port, "0.0.0.0", () => {
-    console.log(`worker listening on ${port}`);
+    log("INFO", "worker listening", { port });
   });
 }
 
-main().catch((error) => {
-  console.error(error);
+main().catch(async (error: unknown) => {
+  captureException(error);
+  log("CRITICAL", "worker failed to start", errorFields(error));
+  await flushSentry();
   process.exit(1);
 });
