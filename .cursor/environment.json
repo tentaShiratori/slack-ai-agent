@@ -1,0 +1,22 @@
+{
+  "name": "slack-ai-agent",
+  "user": "ubuntu",
+  "install": "./.cursor/cloud/install.sh",
+  "start": "./.cursor/cloud/start.sh",
+  "terminals": [
+    {
+      "name": "worker",
+      "command": "export PATH=\"$HOME/.local/bin:$PATH\"; exec mise run worker",
+      "description": "Agent worker (Cloud Run equivalent) on http://localhost:8080. Consumes jobs from POST /jobs, uses Redis for locks/dedup, replies to Slack."
+    },
+    {
+      "name": "webhook",
+      "command": "export PATH=\"$HOME/.local/bin:$PATH\"; cd apps/webhook && exec env PORT=3000 mise exec -- pnpm dlx tsx watch src/server.ts",
+      "description": "Slack events webhook (Vercel equivalent) on http://localhost:3000. Verifies/acks Slack and dispatches jobs to the worker. Run via tsx because server.ts uses NodeNext .js->.ts imports."
+    }
+  ],
+  "ports": [
+    { "name": "webhook", "port": 3000 },
+    { "name": "worker", "port": 8080 }
+  ]
+}
