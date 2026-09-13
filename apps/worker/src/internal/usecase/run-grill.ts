@@ -82,7 +82,9 @@ export async function runGrillSession(job: Job, deps: RunGrillDeps): Promise<boo
   try {
     const turned = await deps.turn({
       ...(resumeId ? { agentId: resumeId } : {}),
-      message: job.grill ? buildGrillStartPrompt(job.grill.theme) : buildGrillFollowUp(job.text ?? ""),
+      message: job.grill
+        ? buildGrillStartPrompt(job.grill.theme)
+        : buildGrillFollowUp(job.text ?? ""),
     });
     await applyTurn(job, deps, turned.agentId, turned.text);
     return true;

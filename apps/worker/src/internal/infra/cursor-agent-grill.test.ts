@@ -26,7 +26,9 @@ function fakeAgent(id: string, result: WaitResult) {
   };
 }
 
-function sdk(result: WaitResult = { status: "finished", result: '{"status":"continue","message":"Q1"}' }): CursorGrillSdk & {
+function sdk(
+  result: WaitResult = { status: "finished", result: '{"status":"continue","message":"Q1"}' },
+): CursorGrillSdk & {
   create: ReturnType<typeof vi.fn<CursorGrillSdk["create"]>>;
   resume: ReturnType<typeof vi.fn<CursorGrillSdk["resume"]>>;
 } {
@@ -74,9 +76,7 @@ test("create が投げた例外はそのまま上げる", async () => {
 });
 
 test("default SDK は Agent.create に渡す", async () => {
-  agentCreate.mockResolvedValueOnce(
-    fakeAgent("bc-9", { status: "finished", result: "ok" }),
-  );
+  agentCreate.mockResolvedValueOnce(fakeAgent("bc-9", { status: "finished", result: "ok" }));
   await expect(createCursorGrill("key", "acme/app")({ message: "start" })).resolves.toEqual({
     agentId: "bc-9",
     text: "ok",
@@ -85,9 +85,7 @@ test("default SDK は Agent.create に渡す", async () => {
 });
 
 test("default SDK の resume は Agent.resume に渡す", async () => {
-  agentResume.mockResolvedValueOnce(
-    fakeAgent("bc-9", { status: "finished", result: "ok" }),
-  );
+  agentResume.mockResolvedValueOnce(fakeAgent("bc-9", { status: "finished", result: "ok" }));
   await expect(
     createCursorGrill("key", "acme/app")({ agentId: "bc-9", message: "next" }),
   ).resolves.toEqual({ agentId: "bc-9", text: "ok" });

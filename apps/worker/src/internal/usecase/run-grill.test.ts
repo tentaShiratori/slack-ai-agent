@@ -100,7 +100,10 @@ test("スレッド返信が同一 session で次ラウンドになる", async ()
   const turn = vi.fn<GrillTurn>(async () => ({ agentId: "bc-1", text: continueJson }));
   const d = deps({ sessionId: grillSessionId("bc-1"), turn });
   await expect(runGrillSession(replyJob, d)).resolves.toBe(true);
-  expect(turn).toHaveBeenCalledWith({ agentId: "bc-1", message: expect.stringContaining("Q1 は A") });
+  expect(turn).toHaveBeenCalledWith({
+    agentId: "bc-1",
+    message: expect.stringContaining("Q1 は A"),
+  });
   expect(d.slack.postMessage).toHaveBeenCalledWith({
     channelId: "C123",
     threadTs: "1.0",

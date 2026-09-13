@@ -73,9 +73,7 @@ export function createCursorGrill(
     cloud: { repos: [{ url: githubRepoUrl(ownerRepo) }] },
   };
   return async ({ agentId, message }) => {
-    await using agent = agentId
-      ? await sdk.resume(agentId, options)
-      : await sdk.create(options);
+    await using agent = agentId ? await sdk.resume(agentId, options) : await sdk.create(options);
     const run = await agent.send(message);
     const result = await run.wait();
     if (result.status !== "finished" || !result.result) {

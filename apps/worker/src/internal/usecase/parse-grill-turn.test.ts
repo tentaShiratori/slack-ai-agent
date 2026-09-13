@@ -56,8 +56,12 @@ test("fence 付き JSON を読む", () => {
 
 test("空の message / title / summary は失敗する", () => {
   expect(() => parseGrillTurn('{"status":"continue","message":" "}')).toThrow("grill_failed");
-  expect(() => parseGrillTurn('{"status":"done","title":" ","summary":"s"}')).toThrow("grill_failed");
-  expect(() => parseGrillTurn('{"status":"done","title":"t","summary":""}')).toThrow("grill_failed");
+  expect(() => parseGrillTurn('{"status":"done","title":" ","summary":"s"}')).toThrow(
+    "grill_failed",
+  );
+  expect(() => parseGrillTurn('{"status":"done","title":"t","summary":""}')).toThrow(
+    "grill_failed",
+  );
 });
 
 test("配列や不正 JSON は失敗する", () => {
