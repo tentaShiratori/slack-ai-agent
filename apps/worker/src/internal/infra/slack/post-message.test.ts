@@ -9,9 +9,11 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 test("chat.postMessage に channel と thread_ts を送る", async () => {
-  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true }));
+  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true, ts: "1.0" }));
   const slack = createSlackPoster("xoxb-dev", fetchFn);
-  await slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" });
+  await expect(
+    slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" }),
+  ).resolves.toEqual({ ts: "1.0" });
   expect(fetchFn).toHaveBeenCalledOnce();
   const init = fetchFn.mock.calls[0]?.[1];
   expect(fetchFn.mock.calls[0]?.[0]).toBe("https://slack.com/api/chat.postMessage");
@@ -31,11 +33,13 @@ test("chat.postMessage に channel と thread_ts を送る", async () => {
 });
 
 test("thread_ts が無ければチャンネルに投稿する", async () => {
-  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true }));
-  await createSlackPoster("xoxb-dev", fetchFn).postMessage({
-    channelId: "C123",
-    text: "hello",
-  });
+  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true, ts: "9.0" }));
+  await expect(
+    createSlackPoster("xoxb-dev", fetchFn).postMessage({
+      channelId: "C123",
+      text: "hello",
+    }),
+  ).resolves.toEqual({ ts: "9.0" });
   const init = fetchFn.mock.calls[0]?.[1];
   if (typeof init?.body !== "string") {
     throw new Error("expected string body");
@@ -75,4 +79,12 @@ test("配列の JSON は SlackPostError", async () => {
   await expect(
     slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" }),
   ).rejects.toMatchObject({ name: "SlackPostError" });
+});
+
+test("ts が無い ok 応答は SlackPostError", async () => {
+  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true }));
+  const slack = createSlackPoster("xoxb-dev", fetchFn);
+  await expect(
+    slack.postMessage({ channelId: "C123", threadTs: "1.0", text: "help" }),
+  ).rejects.toMatchObject({ name: "SlackPostError", message: "slack_post_missing_ts" });
 });

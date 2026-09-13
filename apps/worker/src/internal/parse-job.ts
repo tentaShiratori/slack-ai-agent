@@ -1,3 +1,4 @@
+import { parseSlashGrill, type SlashGrill } from "./parse-slash-grill.ts";
 import { parseSlashReport, slashReplyThreadTs, type SlashReport } from "./parse-slash-report.ts";
 
 export type Job = {
@@ -6,6 +7,7 @@ export type Job = {
   threadTs: string;
   replyThreadTs?: string;
   report?: SlashReport;
+  grill?: SlashGrill;
   eventType?: string;
   text?: string;
   botId?: string;
@@ -62,7 +64,8 @@ export function parseJob(body: unknown): Job {
   }
 
   const report = parseSlashReport(record);
-  const replyThreadTs = report ? slashReplyThreadTs(record) : undefined;
+  const grill = parseSlashGrill(record);
+  const replyThreadTs = report || grill ? slashReplyThreadTs(record) : undefined;
   const eventType = asNonEmptyString(event?.type);
   const text = asString(event?.text) || asString(record.text);
   const botId = asNonEmptyString(event?.bot_id) ?? asNonEmptyString(record.botId);
@@ -74,6 +77,7 @@ export function parseJob(body: unknown): Job {
     threadTs,
     ...(replyThreadTs ? { replyThreadTs } : {}),
     ...(report ? { report } : {}),
+    ...(grill ? { grill } : {}),
     ...(eventType ? { eventType } : {}),
     ...(text ? { text } : {}),
     ...(botId ? { botId } : {}),

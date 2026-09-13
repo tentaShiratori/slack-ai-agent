@@ -61,13 +61,13 @@ test("trigger_id を thread_ts にしても replyThreadTs は付けない", () =
 test("報告以外の slash は report を付けない", () => {
   expect(
     parseJob({
-      command: "/grill",
-      text: "theme",
+      command: "/bug",
+      text: "x",
       trigger_id: "trig-1",
       channel_id: "C123",
       thread_ts: "1.0",
-    }),
-  ).toEqual({ eventId: "trig-1", channelId: "C123", threadTs: "1.0", text: "theme" });
+    }).report,
+  ).toBeUndefined();
 });
 
 test("空の指示文でも report は付ける", () => {
