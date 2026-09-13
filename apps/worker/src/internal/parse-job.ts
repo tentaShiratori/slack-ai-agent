@@ -1,3 +1,4 @@
+import { bugReplyThreadTs, parseBugReport, type BugReport } from "./parse-bug.ts";
 import { parseSlashReport, slashReplyThreadTs, type SlashReport } from "./parse-slash-report.ts";
 
 export type Job = {
@@ -6,6 +7,7 @@ export type Job = {
   threadTs: string;
   replyThreadTs?: string;
   report?: SlashReport;
+  bug?: BugReport;
   eventType?: string;
   text?: string;
   botId?: string;
@@ -62,7 +64,15 @@ export function parseJob(body: unknown): Job {
   }
 
   const report = parseSlashReport(record);
-  const replyThreadTs = report ? slashReplyThreadTs(record) : undefined;
+  let bug: BugReport | undefined;
+  try {
+    bug = parseBugReport(record);
+  } catch {
+    throw new JobParseError("invalid_job");
+  }
+
+  const replyThreadTs =
+    bugReplyThreadTs(record) ?? (report ? slashReplyThreadTs(record) : undefined);
   const eventType = asNonEmptyString(event?.type);
   const text = asString(event?.text) || asString(record.text);
   const botId = asNonEmptyString(event?.bot_id) ?? asNonEmptyString(record.botId);
@@ -74,6 +84,7 @@ export function parseJob(body: unknown): Job {
     threadTs,
     ...(replyThreadTs ? { replyThreadTs } : {}),
     ...(report ? { report } : {}),
+    ...(bug ? { bug } : {}),
     ...(eventType ? { eventType } : {}),
     ...(text ? { text } : {}),
     ...(botId ? { botId } : {}),

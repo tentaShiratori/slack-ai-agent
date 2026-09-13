@@ -1,3 +1,4 @@
+import type { BugReport } from "../parse-bug.ts";
 import type { ReportKind, SlashReport } from "../parse-slash-report.ts";
 
 export type IssueDraft = {
@@ -14,7 +15,19 @@ const kindTitle: Record<ReportKind, string> = {
   nfr: "非機能",
 };
 
-function buildOrganizePrompt(report: SlashReport): string {
+function buildBugPrompt(bug: BugReport): string {
+  return [
+    "次の不具合報告を GitHub Issue 向けに整理してください。",
+    "ファイルは読まず、JSON だけを返してください。",
+    '形式: {"title":"string","body":"markdown","labels":["bug"]}',
+    `タイトル: ${bug.title}`,
+    `再現: ${bug.reproduction}`,
+    `期待: ${bug.expected}`,
+    `実際: ${bug.actual}`,
+  ].join("\n");
+}
+
+function buildSlashPrompt(report: SlashReport): string {
   const label = report.kind;
   return [
     `次の${kindTitle[report.kind]}の報告を GitHub Issue 向けに整理してください。`,
@@ -29,19 +42,14 @@ function jsonObject(raw: string): Record<string, unknown> {
   const trimmed = raw.trim();
   const fenced = /```(?:json)?\s*([\s\S]*?)```/.exec(trimmed);
   const jsonText = fenced?.[1]?.trim() ?? trimmed;
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(jsonText);
-  } catch {
-    throw new Error("organize_failed");
-  }
+  const parsed: unknown = JSON.parse(jsonText);
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
     throw new Error("organize_failed");
   }
   return parsed as Record<string, unknown>;
 }
 
-function parseIssueDraft(raw: string, kind: ReportKind): IssueDraft {
+function parseIssueDraft(raw: string, kind: string): IssueDraft {
   const parsed = jsonObject(raw);
   const title = typeof parsed.title === "string" ? parsed.title.trim() : "";
   const body = typeof parsed.body === "string" ? parsed.body.trim() : "";
@@ -59,13 +67,21 @@ function parseIssueDraft(raw: string, kind: ReportKind): IssueDraft {
   return { title, body, labels };
 }
 
+async function organize(message: string, kind: string, prompt: PromptRun): Promise<IssueDraft> {
+  const result = await prompt(message);
+  if (result.status !== "finished" || !result.result) {
+    throw new Error("organize_failed");
+  }
+  return parseIssueDraft(result.result, kind);
+}
+
+export async function organizeBugReport(bug: BugReport, prompt: PromptRun): Promise<IssueDraft> {
+  return organize(buildBugPrompt(bug), "bug", prompt);
+}
+
 export async function organizeSlashReport(
   report: SlashReport,
   prompt: PromptRun,
 ): Promise<IssueDraft> {
-  const result = await prompt(buildOrganizePrompt(report));
-  if (result.status !== "finished" || !result.result) {
-    throw new Error("organize_failed");
-  }
-  return parseIssueDraft(result.result, report.kind);
+  return organize(buildSlashPrompt(report), report.kind, prompt);
 }

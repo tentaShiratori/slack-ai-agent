@@ -1,49 +1,37 @@
 import { expect, test } from "vitest";
-import { organizeSlashReport } from "./organize-report.ts";
-import type { SlashReport } from "../parse-slash-report.ts";
+import { organizeBugReport } from "./organize-report.ts";
 
-const feature: SlashReport = { kind: "feature", instruction: "ログインを足す" };
+const bug = {
+  title: "ログインできない",
+  reproduction: "ボタンを押す",
+  expected: "入れる",
+  actual: "落ちる",
+};
 
-async function draftFrom(result: string, report: SlashReport = feature) {
-  return organizeSlashReport(report, async () => ({ status: "finished", result }));
+async function draftFrom(result: string) {
+  return organizeBugReport(bug, async () => ({ status: "finished", result }));
 }
 
-test("プロンプトに種別と指示文を載せる", async () => {
+test("プロンプトに報告項目を載せる", async () => {
   let message = "";
-  await organizeSlashReport(feature, async (prompt) => {
+  await organizeBugReport(bug, async (prompt) => {
     message = prompt;
     return { status: "finished", result: '{"title":"T","body":"B"}' };
   });
-  expect(message).toContain("機能");
-  expect(message).toContain("ログインを足す");
-  expect(message).toContain('"labels":["feature"]');
-});
-
-test("/refactor と /nfr の種別 label をプロンプトに書く", async () => {
-  let refactorPrompt = "";
-  await organizeSlashReport({ kind: "refactor", instruction: "split" }, async (prompt) => {
-    refactorPrompt = prompt;
-    return { status: "finished", result: '{"title":"T","body":"B"}' };
-  });
-  expect(refactorPrompt).toContain("リファクタ");
-  expect(refactorPrompt).toContain('"labels":["refactor"]');
-
-  let nfrPrompt = "";
-  await organizeSlashReport({ kind: "nfr", instruction: "p99" }, async (prompt) => {
-    nfrPrompt = prompt;
-    return { status: "finished", result: '{"title":"T","body":"B"}' };
-  });
-  expect(nfrPrompt).toContain("非機能");
-  expect(nfrPrompt).toContain('"labels":["nfr"]');
+  expect(message).toContain("ログインできない");
+  expect(message).toContain("ボタンを押す");
+  expect(message).toContain("入れる");
+  expect(message).toContain("落ちる");
+  expect(message).toContain('"labels":["bug"]');
 });
 
 test("JSON を Issue 下書きにする", async () => {
   await expect(
-    draftFrom('{"title":"Add login","body":"## Why\\nneed it","labels":["feature"]}'),
+    draftFrom('{"title":"Login fails","body":"## Repro\\nclick","labels":["bug"]}'),
   ).resolves.toEqual({
-    title: "Add login",
-    body: "## Why\nneed it",
-    labels: ["feature"],
+    title: "Login fails",
+    body: "## Repro\nclick",
+    labels: ["bug"],
   });
 });
 
@@ -51,17 +39,12 @@ test("fence 付き JSON を読む", async () => {
   await expect(draftFrom('```json\n{"title":"T","body":"B","labels":[]}\n```')).resolves.toEqual({
     title: "T",
     body: "B",
-    labels: ["feature"],
+    labels: ["bug"],
   });
 });
 
-test("labels が無くても種別 label を付ける", async () => {
-  await expect(draftFrom('{"title":"T","body":"B"}')).resolves.toMatchObject({
-    labels: ["feature"],
-  });
-  await expect(
-    draftFrom('{"title":"T","body":"B"}', { kind: "nfr", instruction: "x" }),
-  ).resolves.toMatchObject({ labels: ["nfr"] });
+test("labels が無くても bug を付ける", async () => {
+  await expect(draftFrom('{"title":"T","body":"B"}')).resolves.toMatchObject({ labels: ["bug"] });
 });
 
 test("空の title や body は失敗する", async () => {
@@ -71,14 +54,22 @@ test("空の title や body は失敗する", async () => {
 
 test("配列や不正 JSON は失敗する", async () => {
   await expect(draftFrom("[]")).rejects.toThrow("organize_failed");
-  await expect(draftFrom("not json")).rejects.toThrow("organize_failed");
+  await expect(draftFrom("not json")).rejects.toThrow(SyntaxError);
+});
+
+test("Agent の結果を下書きにする", async () => {
+  const draft = await organizeBugReport(bug, async () => ({
+    status: "finished",
+    result: '{"title":"整理題","body":"本文","labels":["bug"]}',
+  }));
+  expect(draft).toEqual({ title: "整理題", body: "本文", labels: ["bug"] });
 });
 
 test("Agent が finished 以外なら失敗する", async () => {
   await expect(
-    organizeSlashReport(feature, async () => ({ status: "error", result: "{}" })),
+    organizeBugReport(bug, async () => ({ status: "error", result: "{}" })),
   ).rejects.toThrow("organize_failed");
-  await expect(organizeSlashReport(feature, async () => ({ status: "finished" }))).rejects.toThrow(
+  await expect(organizeBugReport(bug, async () => ({ status: "finished" }))).rejects.toThrow(
     "organize_failed",
   );
 });

@@ -5,8 +5,9 @@ import { createCursorPrompt } from "./internal/infra/cursor-agent.ts";
 import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { createSlackPoster } from "./internal/infra/slack/post-message.ts";
+import { fileBugReport } from "./internal/usecase/file-bug-report.ts";
 import { fileSlashReport } from "./internal/usecase/file-report.ts";
-import { organizeSlashReport } from "./internal/usecase/organize-report.ts";
+import { organizeBugReport, organizeSlashReport } from "./internal/usecase/organize-report.ts";
 import { replyMentionHelp } from "./internal/usecase/reply-mention-help.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
@@ -55,6 +56,15 @@ async function main() {
       github,
       process: async ({ job }) => {
         await replyMentionHelp(job, slack);
+        await fileBugReport(job, {
+          github,
+          slack,
+          organize: (bug) => organizeBugReport(bug, prompt),
+          onError: (error) => {
+            captureException(error);
+            log("ERROR", "bug report failed", errorFields(error));
+          },
+        });
         await fileSlashReport(job, {
           github,
           slack,
