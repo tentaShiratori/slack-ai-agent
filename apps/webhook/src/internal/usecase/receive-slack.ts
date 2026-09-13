@@ -1,3 +1,5 @@
+import type { OpenBugModal } from "../infra/slack/open-bug-modal.ts";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -28,6 +30,21 @@ function eventRecord(payload: Record<string, unknown>): Record<string, unknown> 
 
 function isBotEvent(event: Record<string, unknown>): boolean {
   return asNonEmptyString(event.bot_id) !== undefined || event.subtype === "bot_message";
+}
+
+export type { OpenBugModalInput } from "../infra/slack/open-bug-modal.ts";
+
+export type ReceiveSlackOptions = {
+  openBugModal?: OpenBugModal;
+};
+
+const bugModalError = {
+  response_type: "ephemeral",
+  text: "モーダルを開けませんでした",
+};
+
+function isBugSlash(payload: Record<string, unknown>): boolean {
+  return asNonEmptyString(payload.command) === "/bug";
 }
 
 function shouldEnqueue(payload: unknown): payload is Record<string, unknown> {
@@ -107,10 +124,32 @@ function withJobIds(payload: Record<string, unknown>): Record<string, unknown> {
   };
 }
 
+async function openBugSlash(
+  payload: Record<string, unknown>,
+  openBugModal: ReceiveSlackOptions["openBugModal"],
+): Promise<{ status: number; body: unknown }> {
+  const triggerId = asNonEmptyString(payload.trigger_id);
+  const channelId = asNonEmptyString(payload.channel_id);
+  if (!triggerId || !channelId || !openBugModal) {
+    return { status: 200, body: bugModalError };
+  }
+  try {
+    await openBugModal({
+      triggerId,
+      channelId,
+      threadTs: asNonEmptyString(payload.thread_ts),
+    });
+  } catch {
+    return { status: 200, body: bugModalError };
+  }
+  return { status: 200, body: { ok: true } };
+}
+
 export async function receiveSlack(
   rawBody: string,
   enqueue: (rawBody: string) => Promise<void>,
   contentType?: string,
+  options: ReceiveSlackOptions = {},
 ): Promise<{ status: number; body: unknown }> {
   let payload: unknown;
   try {
@@ -121,6 +160,10 @@ export async function receiveSlack(
 
   if (isRecord(payload) && payload.type === "url_verification") {
     return { status: 200, body: { challenge: payload.challenge } };
+  }
+
+  if (isRecord(payload) && isBugSlash(payload)) {
+    return openBugSlash(payload, options.openBugModal);
   }
 
   if (shouldEnqueue(payload)) {

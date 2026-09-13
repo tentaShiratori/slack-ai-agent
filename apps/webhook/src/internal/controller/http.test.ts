@@ -1,5 +1,6 @@
 import { createHmac } from "node:crypto";
 import { expect, test, vi } from "vitest";
+import type { OpenBugModal } from "../infra/slack/open-bug-modal.ts";
 import { handleRequest, type HttpDeps, type WebhookRequest } from "./http.ts";
 
 const secret = "signing-secret";
@@ -149,4 +150,28 @@ test("query 付きパスでも events を受ける", async () => {
   const body = JSON.stringify({ type: "url_verification", challenge: "q" });
   const res = await handleRequest(slackReq("/api/slack/events?ssl_check=1", body), deps());
   expect(res).toEqual({ status: 200, body: { challenge: "q" } });
+});
+
+test("/bug はモーダルを開いて enqueue しない", async () => {
+  const slash = new URLSearchParams({
+    command: "/bug",
+    trigger_id: "trig-1",
+    channel_id: "C1",
+  }).toString();
+  const openBugModal = vi.fn<OpenBugModal>(async () => undefined);
+  const d = deps({ openBugModal });
+  const res = await handleRequest(
+    slackReq("/api/slack/commands", slash, {
+      contentType: "application/x-www-form-urlencoded",
+      slackSignature: sign(slash),
+    }),
+    d,
+  );
+  expect(res).toEqual({ status: 200, body: { ok: true } });
+  expect(d.enqueue).not.toHaveBeenCalled();
+  expect(openBugModal).toHaveBeenCalledWith({
+    triggerId: "trig-1",
+    channelId: "C1",
+    threadTs: undefined,
+  });
 });

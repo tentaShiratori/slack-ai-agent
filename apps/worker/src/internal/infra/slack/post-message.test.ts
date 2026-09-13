@@ -27,6 +27,23 @@ test("chat.postMessage に channel と thread_ts を送る", async () => {
   });
 });
 
+test("thread_ts が無ければチャンネルに投稿する", async () => {
+  const fetchFn = vi.fn<typeof fetch>(async () => jsonResponse({ ok: true }));
+  const slack = createSlackPoster("xoxb-dev", fetchFn);
+  await slack.postMessage({ channelId: "C123", text: "help" });
+  expect(fetchFn).toHaveBeenCalledWith("https://slack.com/api/chat.postMessage", {
+    method: "POST",
+    headers: {
+      authorization: "Bearer xoxb-dev",
+      "content-type": "application/json; charset=utf-8",
+    },
+    body: JSON.stringify({
+      channel: "C123",
+      text: "help",
+    }),
+  });
+});
+
 test("ok:false は SlackPostError", async () => {
   const fetchFn = vi.fn<typeof fetch>(async () =>
     jsonResponse({ ok: false, error: "channel_not_found" }),

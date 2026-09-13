@@ -1,4 +1,5 @@
 import type { Job } from "../parse-job.ts";
+import type { SlackClient } from "../slack.ts";
 
 const slashHelpText = [
   "使えるコマンド:",
@@ -9,9 +10,7 @@ const slashHelpText = [
   "メンションだけでは対話しません。slash コマンドを使ってください。",
 ].join("\n");
 
-export type SlackPoster = {
-  postMessage: (args: { channelId: string; threadTs: string; text: string }) => Promise<void>;
-};
+export type SlackPoster = SlackClient;
 
 function shouldReplyMentionHelp(job: Job): boolean {
   if (job.eventType !== "app_mention") {

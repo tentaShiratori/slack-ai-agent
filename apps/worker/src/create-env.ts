@@ -21,6 +21,7 @@ export function createWorkerEnv(runtimeEnv: RuntimeEnv, skipValidation = false) 
       GITHUB_PROJECT_ID: z.string().min(1),
       GITHUB_DISCUSSION_REPO: ownerRepo.optional(),
       GITHUB_DISCUSSION_CATEGORY_ID: z.string().min(1),
+      CURSOR_API_KEY: z.string().min(1),
       SENTRY_DSN: z.string().url().optional(),
       SENTRY_ENVIRONMENT: z.string().min(1).optional(),
       NODE_ENV: z.enum(["development", "test", "production"]).optional(),

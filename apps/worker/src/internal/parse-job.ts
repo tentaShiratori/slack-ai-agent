@@ -1,7 +1,11 @@
+import { bugReplyThreadTs, parseBugReport, type BugReport } from "./parse-bug.ts";
+
 export type Job = {
   eventId: string;
   channelId: string;
   threadTs: string;
+  replyThreadTs?: string;
+  bug?: BugReport;
   eventType?: string;
   text?: string;
   botId?: string;
@@ -57,6 +61,14 @@ export function parseJob(body: unknown): Job {
     throw new JobParseError("invalid_job");
   }
 
+  let bug: BugReport | undefined;
+  try {
+    bug = parseBugReport(record);
+  } catch {
+    throw new JobParseError("invalid_job");
+  }
+
+  const replyThreadTs = bugReplyThreadTs(record);
   const eventType = asNonEmptyString(event?.type);
   const text = asString(event?.text) || asString(record.text);
   const botId = asNonEmptyString(event?.bot_id) ?? asNonEmptyString(record.botId);
@@ -66,6 +78,8 @@ export function parseJob(body: unknown): Job {
     eventId,
     channelId,
     threadTs,
+    ...(replyThreadTs ? { replyThreadTs } : {}),
+    ...(bug ? { bug } : {}),
     ...(eventType ? { eventType } : {}),
     ...(text ? { text } : {}),
     ...(botId ? { botId } : {}),

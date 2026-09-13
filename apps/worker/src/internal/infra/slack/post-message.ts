@@ -16,7 +16,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 
 export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch) {
   return {
-    async postMessage(args: { channelId: string; threadTs: string; text: string }) {
+    async postMessage(args: { channelId: string; threadTs?: string; text: string }) {
       const { channelId, threadTs, text } = args;
       const response = await fetchFn(slackPostMessageUrl, {
         method: "POST",
@@ -26,7 +26,7 @@ export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch) 
         },
         body: JSON.stringify({
           channel: channelId,
-          thread_ts: threadTs,
+          ...(threadTs ? { thread_ts: threadTs } : {}),
           text,
         }),
       });

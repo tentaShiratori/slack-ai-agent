@@ -19,7 +19,7 @@ cp infra/dev/.env.example infra/dev/.env
 mise run dev
 ```
 
-`infra/dev/.env` に GitHub fine-grained PAT と、デフォルトの `owner/repo` / Project id / Discussion カテゴリ id を入れる。mise の `[env]` には起動用のプレースホルダがある。本番は Secret Manager の `GITHUB_PAT` と Cloud Run の env。
+`infra/dev/.env` に GitHub fine-grained PAT、デフォルトの `owner/repo` / Project id / Discussion カテゴリ id、`SLACK_BOT_TOKEN`、`CURSOR_API_KEY` を入れる。mise の `[env]` には起動用のプレースホルダがある。本番は Secret Manager と Cloud Run の env。
 
 データストアだけ起動 / 停止:
 
@@ -44,4 +44,4 @@ curl.exe -s http://localhost:3000/api/slack/interactive `
   -d "payload={""type"":""view_submission"",""trigger_id"":""trig-2""}"
 ```
 
-`app_mention` には Worker が slash ヘルプを `chat.postMessage` する。`SLACK_BOT_TOKEN` がダミーだと Slack API は失敗する。Cursor SDK・slash／GitHub 連携は未実装またはスタブ。Redis と（後続 wiki 用の）Qdrant まではこの構成で起動できる。v1 の完成線は [docs/completion.md](../../docs/completion.md)。
+`/bug` のモーダルは webhook が `views.open` する。送信後の Issue 化は Worker の Cursor SDK と GitHub クライアント。`app_mention` には Worker が slash ヘルプを `chat.postMessage` する。ローカルで Slack API を叩くには実トークンが必要。v1 の完成線は [docs/completion.md](../../docs/completion.md)。

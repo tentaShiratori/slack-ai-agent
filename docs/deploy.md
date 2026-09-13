@@ -172,7 +172,7 @@ Cloud Tasks がリトライするのは **429 / 5xx** と接続エラー。Worke
 | Slash Commands | `https://<project>.vercel.app/api/slack/commands` |
 | Interactivity | `https://<project>.vercel.app/api/slack/interactive` |
 
-Events は `url_verification` の challenge を返す。slash・`view_submission`・`app_mention`・スレッド返信は、ack の前に Cloud Tasks へ job を積む。
+Events は `url_verification` の challenge を返す。`/bug` の slash は ack 前に `views.open` する。`view_submission`・他の slash・`app_mention`・スレッド返信は、ack の前に Cloud Tasks へ job を積む。
 
 ## デプロイ
 

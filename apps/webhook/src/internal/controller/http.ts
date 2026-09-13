@@ -1,5 +1,5 @@
 import { verifySlackSignature } from "../lib/slack/verify-signature.ts";
-import { receiveSlack } from "../usecase/receive-slack.ts";
+import { receiveSlack, type OpenBugModalInput } from "../usecase/receive-slack.ts";
 
 export type WebhookRequest = {
   method: string;
@@ -19,6 +19,7 @@ export type HttpDeps = {
   signingSecret: string;
   skipVerify: boolean;
   enqueue: (rawBody: string) => Promise<void>;
+  openBugModal?: (input: OpenBugModalInput) => Promise<void>;
   nowMs?: () => number;
 };
 
@@ -46,7 +47,9 @@ export async function handleRequest(req: WebhookRequest, deps: HttpDeps): Promis
     ) {
       return { status: 401, body: { error: "unauthorized" } };
     }
-    return receiveSlack(req.rawBody, deps.enqueue, req.contentType);
+    return receiveSlack(req.rawBody, deps.enqueue, req.contentType, {
+      openBugModal: deps.openBugModal,
+    });
   }
   return { status: 404, body: { error: "not_found" } };
 }

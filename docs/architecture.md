@@ -103,7 +103,7 @@ flowchart TB
 
 ## 報告系（Issue + Project）
 
-`/bug` はモーダル、他は「コマンド＋ AI 向け指示文」。どちらも Worker 上の Agent が本文を整え、Issue 作成後に Project へ追加する。
+`/bug` の slash は Vercel で `views.open` し、`view_submission` だけを enqueue する。他の報告系は「コマンド＋ AI 向け指示文」を enqueue する。どちらも Worker 上の Agent が本文を整え、Issue 作成後に Project へ追加する。
 
 ```mermaid
 sequenceDiagram
