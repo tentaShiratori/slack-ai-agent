@@ -41,7 +41,7 @@ function slack(extra?: Partial<SlackPoster>): SlackPoster & {
   postMessage: ReturnType<typeof vi.fn<SlackPoster["postMessage"]>>;
 } {
   return {
-    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => undefined),
+    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => ({ ts: "1.0" })),
     ...extra,
   };
 }

@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { env } from "./env.ts";
 import { handleRequest } from "./internal/controller/http.ts";
-import { createCursorPrompt } from "./internal/infra/cursor-agent.ts";
+import { createCursorGrill, createCursorPrompt } from "./internal/infra/cursor-agent.ts";
 import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { createSlackPoster } from "./internal/infra/slack/post-message.ts";
@@ -9,6 +9,7 @@ import { fileBugReport } from "./internal/usecase/file-bug-report.ts";
 import { fileSlashReport } from "./internal/usecase/file-report.ts";
 import { organizeBugReport, organizeSlashReport } from "./internal/usecase/organize-report.ts";
 import { replyMentionHelp } from "./internal/usecase/reply-mention-help.ts";
+import { runGrillSession } from "./internal/usecase/run-grill.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
 
@@ -49,13 +50,27 @@ async function main() {
   const slack = createSlackPoster(env.SLACK_BOT_TOKEN);
   const github = createGitHubClient(githubConfigFromEnv(env));
   const prompt = createCursorPrompt(env.CURSOR_API_KEY, env.GITHUB_DEFAULT_REPO);
+  const grill = createCursorGrill(env.CURSOR_API_KEY, env.GITHUB_DEFAULT_REPO);
   const deps = {
     expectedSecret: env.WORKER_SECRET,
     accept: {
       store,
       github,
-      process: async ({ job }) => {
-        await replyMentionHelp(job, slack);
+      process: async ({ job, sessionId }) => {
+        const grilled = await runGrillSession(job, {
+          sessionId,
+          store,
+          github,
+          slack,
+          turn: grill,
+          onError: (error) => {
+            captureException(error);
+            log("ERROR", "grill failed", errorFields(error));
+          },
+        });
+        if (!grilled) {
+          await replyMentionHelp(job, slack);
+        }
         await fileBugReport(job, {
           github,
           slack,
