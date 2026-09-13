@@ -13,7 +13,7 @@ const mention: Job = {
 
 function poster() {
   return {
-    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => undefined),
+    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => ({ ts: "1.0" })),
   };
 }
 
