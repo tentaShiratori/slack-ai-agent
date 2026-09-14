@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
+import type { SlackPoster } from "../infra/slack/post-message.ts";
 import type { Job } from "../parse-job.ts";
-import { replyMentionHelp, type SlackPoster } from "./reply-mention-help.ts";
+import { replyMentionHelp } from "./reply-mention-help.ts";
 
 const mention: Job = {
   eventId: "evt-1",
@@ -12,7 +13,7 @@ const mention: Job = {
 
 function poster() {
   return {
-    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => undefined),
+    postMessage: vi.fn<SlackPoster["postMessage"]>(async () => ({ ts: "1.0" })),
   };
 }
 

@@ -43,8 +43,22 @@ const bugModalError = {
   text: "モーダルを開けませんでした",
 };
 
+const reportCommands = new Set(["/feature", "/refactor", "/nfr"]);
+const emptyReportSlashAck = {
+  response_type: "ephemeral",
+  text: "指示文を付けてください",
+};
+
 function isBugSlash(payload: Record<string, unknown>): boolean {
   return asNonEmptyString(payload.command) === "/bug";
+}
+
+function isEmptyReportSlash(payload: Record<string, unknown>): boolean {
+  const command = asNonEmptyString(payload.command);
+  if (!command || !reportCommands.has(command)) {
+    return false;
+  }
+  return typeof payload.text !== "string" || payload.text.trim() === "";
 }
 
 function shouldEnqueue(payload: unknown): payload is Record<string, unknown> {
@@ -164,6 +178,10 @@ export async function receiveSlack(
 
   if (isRecord(payload) && isBugSlash(payload)) {
     return openBugSlash(payload, options.openBugModal);
+  }
+
+  if (isRecord(payload) && isEmptyReportSlash(payload)) {
+    return { status: 200, body: emptyReportSlashAck };
   }
 
   if (shouldEnqueue(payload)) {

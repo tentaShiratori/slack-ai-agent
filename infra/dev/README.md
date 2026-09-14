@@ -44,4 +44,4 @@ curl.exe -s http://localhost:3000/api/slack/interactive `
   -d "payload={""type"":""view_submission"",""trigger_id"":""trig-2""}"
 ```
 
-`/bug` のモーダルは webhook が `views.open` する。送信後の Issue 化は Worker の Cursor SDK と GitHub クライアント。`app_mention` には Worker が slash ヘルプを `chat.postMessage` する。ローカルで Slack API を叩くには実トークンが必要。v1 の完成線は [docs/completion.md](../../docs/completion.md)。
+`/bug` のモーダルは webhook が `views.open` する。`/feature` `/refactor` `/nfr` と `/bug` 送信後の Issue 化は Worker の Cursor SDK と GitHub クライアント。`app_mention` には Worker が slash ヘルプを返す。ローカルで Slack API を叩くには実トークンが必要。v1 の完成線は [docs/completion.md](../../docs/completion.md)。

@@ -15,9 +15,14 @@ test("content-type が空でも JSON を読む", async () => {
 
 test("slash の form を object にする", async () => {
   const enqueue = vi.fn<(rawBody: string) => Promise<void>>(async () => undefined);
-  await receiveSlack("command=%2Ffeature&channel_id=C1&trigger_id=t1", enqueue, formType);
+  await receiveSlack(
+    "command=%2Ffeature&text=add+login&channel_id=C1&trigger_id=t1",
+    enqueue,
+    formType,
+  );
   expect(JSON.parse(enqueue.mock.calls[0]?.[0] ?? "{}")).toMatchObject({
     command: "/feature",
+    text: "add login",
     channel_id: "C1",
     event_id: "t1",
   });

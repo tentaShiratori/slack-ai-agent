@@ -151,15 +151,6 @@ test("Slack と Cursor の必須変数を読む", () => {
 });
 
 test("CURSOR_API_KEY が無いと失敗する", () => {
-  expect(() =>
-    createWorkerEnv({
-      REDIS_URL: valid.REDIS_URL,
-      WORKER_SECRET: valid.WORKER_SECRET,
-      GITHUB_PAT: valid.GITHUB_PAT,
-      GITHUB_DEFAULT_REPO: valid.GITHUB_DEFAULT_REPO,
-      GITHUB_PROJECT_ID: valid.GITHUB_PROJECT_ID,
-      GITHUB_DISCUSSION_CATEGORY_ID: valid.GITHUB_DISCUSSION_CATEGORY_ID,
-      SLACK_BOT_TOKEN: valid.SLACK_BOT_TOKEN,
-    }),
-  ).toThrow("Invalid environment variables");
+  const { CURSOR_API_KEY: _, ...rest } = valid;
+  expect(() => createWorkerEnv(rest)).toThrow("Invalid environment variables");
 });

@@ -14,7 +14,15 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value as Record<string, unknown>;
 }
 
-export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch) {
+export type SlackPoster = {
+  postMessage: (args: {
+    channelId: string;
+    threadTs?: string;
+    text: string;
+  }) => Promise<{ ts: string }>;
+};
+
+export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch): SlackPoster {
   return {
     async postMessage(args: { channelId: string; threadTs?: string; text: string }) {
       const { channelId, threadTs, text } = args;
@@ -26,8 +34,8 @@ export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch) 
         },
         body: JSON.stringify({
           channel: channelId,
-          ...(threadTs ? { thread_ts: threadTs } : {}),
           text,
+          ...(threadTs ? { thread_ts: threadTs } : {}),
         }),
       });
 
@@ -43,6 +51,11 @@ export function createSlackPoster(token: string, fetchFn: typeof fetch = fetch) 
         const error = typeof record?.error === "string" ? record.error : "slack_post_failed";
         throw new SlackPostError(error);
       }
+      const ts = typeof record.ts === "string" && record.ts.length > 0 ? record.ts : undefined;
+      if (!ts) {
+        throw new SlackPostError("slack_post_missing_ts");
+      }
+      return { ts };
     },
   };
 }

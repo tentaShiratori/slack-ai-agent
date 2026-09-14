@@ -1,4 +1,5 @@
 import type { BugReport } from "../parse-bug.ts";
+import type { ReportKind, SlashReport } from "../parse-slash-report.ts";
 
 export type IssueDraft = {
   title: string;
@@ -8,7 +9,13 @@ export type IssueDraft = {
 
 export type PromptRun = (message: string) => Promise<{ status: string; result?: string }>;
 
-function buildOrganizePrompt(bug: BugReport): string {
+const kindTitle: Record<ReportKind, string> = {
+  feature: "機能",
+  refactor: "リファクタ",
+  nfr: "非機能",
+};
+
+function buildBugPrompt(bug: BugReport): string {
   return [
     "次の不具合報告を GitHub Issue 向けに整理してください。",
     "ファイルは読まず、JSON だけを返してください。",
@@ -17,6 +24,17 @@ function buildOrganizePrompt(bug: BugReport): string {
     `再現: ${bug.reproduction}`,
     `期待: ${bug.expected}`,
     `実際: ${bug.actual}`,
+  ].join("\n");
+}
+
+function buildSlashPrompt(report: SlashReport): string {
+  const label = report.kind;
+  return [
+    `次の${kindTitle[report.kind]}の報告を GitHub Issue 向けに整理してください。`,
+    "ファイルは読まず、JSON だけを返してください。",
+    `形式: {"title":"string","body":"markdown","labels":["${label}"]}`,
+    "指示:",
+    report.instruction,
   ].join("\n");
 }
 
@@ -31,7 +49,7 @@ function jsonObject(raw: string): Record<string, unknown> {
   return parsed as Record<string, unknown>;
 }
 
-function parseIssueDraft(raw: string): IssueDraft {
+function parseIssueDraft(raw: string, kind: string): IssueDraft {
   const parsed = jsonObject(raw);
   const title = typeof parsed.title === "string" ? parsed.title.trim() : "";
   const body = typeof parsed.body === "string" ? parsed.body.trim() : "";
@@ -43,16 +61,27 @@ function parseIssueDraft(raw: string): IssueDraft {
         (label): label is string => typeof label === "string" && label.length > 0,
       )
     : [];
-  if (!labels.includes("bug")) {
-    labels.unshift("bug");
+  if (!labels.includes(kind)) {
+    labels.unshift(kind);
   }
   return { title, body, labels };
 }
 
-export async function organizeBugReport(bug: BugReport, prompt: PromptRun): Promise<IssueDraft> {
-  const result = await prompt(buildOrganizePrompt(bug));
+async function organize(message: string, kind: string, prompt: PromptRun): Promise<IssueDraft> {
+  const result = await prompt(message);
   if (result.status !== "finished" || !result.result) {
     throw new Error("organize_failed");
   }
-  return parseIssueDraft(result.result);
+  return parseIssueDraft(result.result, kind);
+}
+
+export async function organizeBugReport(bug: BugReport, prompt: PromptRun): Promise<IssueDraft> {
+  return organize(buildBugPrompt(bug), "bug", prompt);
+}
+
+export async function organizeSlashReport(
+  report: SlashReport,
+  prompt: PromptRun,
+): Promise<IssueDraft> {
+  return organize(buildSlashPrompt(report), report.kind, prompt);
 }
