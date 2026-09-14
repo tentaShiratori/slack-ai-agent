@@ -1,0 +1,72 @@
+---
+description: Directory layout and file naming
+alwaysApply: true
+---
+
+# 配置
+
+- `apps/webhook` — Slack 入口（Vercel / ローカル :3000）。署名検証・ack・Cloud Tasks enqueue
+- `apps/worker` — Agent 実行（Cloud Run / ローカル :8080）。Cursor SDK・GitHub・Slack 返信
+- `infra` — インフラ（Terraform・ローカル Docker）。リポジトリ直下。`apps/*/src/internal/infra`（アプリ内の永続化・外部 API）とは別
+- `docs` — 設計・運用ドキュメント
+- `test` — リポジトリ横断のテストヘルパー（面内で足りるときは作らない）
+
+既存ファイルの隣に足す。層を先に新設しない。`features/` などの層も新設しない。
+
+用語は CONTEXT.md のローマ字にする。ファイル名は中の主な export に合わせる。ケバブケース（例: `receive-slack.ts`）。フレームワーク予約名を除く。
+
+| 対象 | ファイル名 | 例 |
+| --- | --- | --- |
+| 純関数・モジュール | `xxx.ts`（ケバブ） | `receive-slack.ts` |
+| テスト | 対象の隣に `*.test.ts` | `receive-slack.test.ts` |
+| Vercel 入口 | `api/` 配下 | `api/slack/events.ts` |
+| ADR | `NNNN-kebab-case.md` | `0001-cloud-tasks-enqueue.md` |
+
+# アプリ（webhook / worker）
+
+どちらも TypeScript。ソースは `src/`。HTTP 入口は `controller`、書く処理は `usecase`、読む処理は `query`（要る面だけ）、外部 I/O は `infra`、共通は `lib`。
+
+## 命名規則
+
+- ケバブケース
+- テスト本体は対象の隣に `Xxx.test.ts`（ファイル名は対象と同じベース）
+- テストでだけ使うヘルパー・モックは面内の `test/`（無いときは作らない）
+
+## ディレクトリ構造（例: worker）
+
+```tree
+apps/worker/
+  src/
+    server.ts                 ← プロセス入口
+    env.ts
+    create-env.ts
+    internal/
+      controller/             ← HTTP
+        http.ts
+      usecase/                ← 書く・実行する処理
+        accept-job.ts
+        reply-mention-help.ts
+      query/                  ← 読む処理（要るときだけ）
+        get-thread-session.ts
+      infra/                  ← 外部 API・永続化
+        github-client.ts
+        redis-job-store.ts
+        slack/
+          post-message.ts
+      parse-job.ts
+      redis-keys.ts
+```
+
+webhook も同じ思想。Vercel 用の `api/slack/*` は薄い入口で、本体は `src/internal/` に置く。
+
+# インフラ
+
+リポジトリ直下の `infra/`（Terraform・dev compose 等）。命名はスネークケース。
+
+```tree
+infra/
+  dev/                    ← ローカル Docker 等
+  prd/                    ← 本番 Terraform
+  modules/
+    {module}/
+```

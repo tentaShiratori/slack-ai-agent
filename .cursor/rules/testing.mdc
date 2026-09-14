@@ -8,3 +8,4 @@ alwaysApply: true
 - 実行は `pnpm test run {ファイル名}` のみ
 - 全テスト実行は禁止
 - 正常系・異常系・境界値を含める
+- Unitテストを厚くし、Unitテストで確認してる挙動はIntegrationテストでは確認しない。

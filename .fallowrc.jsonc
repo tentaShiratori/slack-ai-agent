@@ -1,6 +1,8 @@
 {
   // This file is JSONC: fallow reads these comments; generic JSON tools may not.
   "$schema": "./node_modules/fallow/schema.json",
+  // Cursor フックは隠しディレクトリのため、解析対象外にする
+  "ignorePatterns": [".cursor/**"],
   "entry": [
     "apps/webhook/api/**/*.ts",
     "apps/webhook/src/server.ts",

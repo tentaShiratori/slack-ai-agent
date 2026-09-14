@@ -1,13 +1,17 @@
 {
+  "private": true,
   "scripts": {
     "dead-code": "fallow dead-code && fallow dead-code --production",
     "test": "pnpm --filter worker exec vitest",
+    "hooks:test": "vitest run .cursor/hooks",
     "fmt": "pnpm -r fmt",
     "fmt:check": "pnpm -r fmt:check",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm -r lint",
+    "typecheck": "tsc --noEmit && pnpm -r typecheck"
   },
   "devDependencies": {
-    "fallow": "^3.23.0"
+    "fallow": "^3.23.0",
+    "vitest": "^4.1.11"
   },
   "dependencies": {
     "@types/node": "^26.5.0",

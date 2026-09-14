@@ -1,0 +1,21 @@
+{
+  "name": "slack-ai-agent",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "~/.local/bin/mise exec -- mise run dev",
+      "description": "Redis/Qdrant + webhook :3000 + worker :8080"
+    }
+  ],
+  "ports": [
+    {
+      "name": "webhook",
+      "port": 3000
+    },
+    {
+      "name": "worker",
+      "port": 8080
+    }
+  ]
+}

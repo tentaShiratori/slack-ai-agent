@@ -1,16 +1,17 @@
 ## 作業準備
 
 作業前に以下を実行してください。
+
 - `pnpm install`
 - `graphify update .`
 
+graphify-out がなければ `graphify update .` を実行して最新化する。
+
 ## ツール選択ルール
 
-このプロジェクトには4つのコード解析ツールが入っている。質問の種類で使い分ける
+このプロジェクトには4つのコード解析ツールが入っている。質問の種類で使い分ける。
 
-better-code-review-graph はアクション型の統合ツール構成。`query` / `review` / `security` に `action` パラメータを渡して使う
-
-graphify-outがなければ`graphify update .`を実行して最新化する
+better-code-review-graph はアクション型の統合ツール構成。`query` / `review` / `security` に `action` パラメータを渡して使う。
 
 | 質問の種類                       | 使うツール                                                                | 例                                                    |
 | -------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------- |
@@ -41,8 +42,8 @@ better-code-review-graph の `query`（`action=search`）が0件 → `/graphify 
 - 返答は日本語
 - 機能追加は `add-feature` スキル、テスト追加は `write-test` スキルに従う
 - `progress.md` はセッション開始フックが注入する。意思決定・作業完了時に更新する
-- 不要コードは `pnpm dead-code`（fallow）。テストでしか使わないコードは `*.test.ts` かリポジトリ直下の `test/` に置く
+- 不要コードは `pnpm dead-code`（fallow）。テスト本体は対象の隣（`*.test.ts` / `*.test.tsx`）。テストでだけ使うヘルパー・モックは面内の `test/`
 - タスクは issue ベースで進める。進行中の issue には `In Progress` ラベルをつける
-- ブランチは `{type}/{issue番号}-{slug}`。type は `feat`（機能）/ `fix`（修正）/ `chore`（土台・掃除）。slug は英小文字とハイフンだけ。用語は CONTEXT.md のローマ字をケバブにする（`gakushu-gengo`）。1 issue に 1 ブランチ。名前は issue 本文の「ブランチ」行に従う
+- ブランチは `{type}/{issue番号}-{slug}`。type は `feat`（機能）/ `fix`（修正）/ `chore`（土台・掃除）。slug は英小文字とハイフンだけ。用語は CONTEXT.md のローマ字をケバブにする（例: `grilling`）。1 issue に 1 ブランチ。名前は issue 本文の「ブランチ」行に従う
 - PR は issue の Development に載せる。本文に `Closes #番号` を書く。`#番号` だけの言及では載らない。Dependabot 以外はリンクなしでチェックが落ちる
 - 作業が終わったらPRを作成し、コンフリクトは解決する

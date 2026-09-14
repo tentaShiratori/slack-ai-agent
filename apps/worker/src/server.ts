@@ -4,6 +4,7 @@ import { handleRequest } from "./internal/controller/http.ts";
 import { createGitHubClient, githubConfigFromEnv } from "./internal/infra/github-client.ts";
 import { connectRedisJobStore } from "./internal/infra/redis-job-store.ts";
 import { createSlackPoster } from "./internal/infra/slack/post-message.ts";
+import type { Job } from "./internal/parse-job.ts";
 import { replyMentionHelp } from "./internal/usecase/reply-mention-help.ts";
 import { errorFields, log } from "./logger.ts";
 import { captureException, flushSentry, initSentry } from "./sentry.ts";
@@ -49,7 +50,7 @@ async function main() {
     accept: {
       store,
       github,
-      process: async ({ job }) => {
+      process: async ({ job }: { job: Job }) => {
         await replyMentionHelp(job, slack);
       },
     },
